@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.BaskitSplashScreen" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/green</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/baskitlogo_white</item>
+        <!--<item name="windowSplashScreenAnimationDuration">3000</item>-->
+        <item name="postSplashScreenTheme">@style/Theme.SplashScreenBaskit</item>
+    </style>
+
+    <style name="Theme.SplashScreenBaskit" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.BaskitSplashScreen.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    <style name="Theme.BaskitSplashScreen.AppBarOverlay"
+        parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="Theme.BaskitSplashScreen.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+</resources>

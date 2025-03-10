@@ -68,25 +68,4 @@ class UserStoreController(private val lifecycleOwner: LifecycleOwner, private va
             apply()
         }
     }
-
-    fun getStore(): StoreResponse {
-        val sharedPreferences = context.getSharedPreferences("StorePrefs", Context.MODE_PRIVATE)
-        return StoreResponse(
-            id = "",
-            user_id = "",
-            store_name = sharedPreferences.getString("store_name", "Unknown") ?: "Unknown",
-            owner_name = "",
-            store_phone_number = sharedPreferences.getString("store_phone_number", "Unknown") ?: "Unknown",
-            store_address = sharedPreferences.getString("store_address", "Unknown") ?: "Unknown",
-            store_origin = sharedPreferences.getString("store_origin", "Unknown") ?: "Unknown",
-            store_rating = sharedPreferences.getString("store_rating", "0") ?: "0",
-            store_status = sharedPreferences.getString("store_status", "Unknown") ?: "Unknown",
-            registered_store_name = "",
-            registered_store_address = "",
-            certificate_of_registration = "",
-            valid_id = "",
-            store_image = sharedPreferences.getString("store_image", ""),
-            created_at = ""
-        )
-    }
 }

@@ -2,16 +2,24 @@ package com.example.splashscreenbaskit.controllers
 
 import Product
 import ProductResponse
+import ProductsResponse
+import android.content.Context
 import android.util.Log
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.example.splashscreenbaskit.api.ApiService
+import com.example.splashscreenbaskit.api.TokenManager
+import com.google.gson.Gson
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Callback
+import retrofit2.HttpException
 import retrofit2.Response
 
-class ProductController {
+class ProductController(private val lifecycleOwner: LifecycleOwner, private val context: Context) {
     private val apiService: ApiService = RetrofitInstance.create(ApiService::class.java)
 
     // Function to add a product
@@ -53,37 +61,52 @@ class ProductController {
         })
     }
 
-    // Function to fetch products based on category
-    fun getProducts(
-        category: String,
-        onResult: (List<Product>?, String?) -> Unit
-    ) {
-        val call = when (category) {
-            "fruit" -> apiService.getFruits()
-            "vegetable" -> apiService.getVegetables()
-            "meat" -> apiService.getMeats()
-            "fish" -> apiService.getFish()
-            "frozen" -> apiService.getFrozenProducts()
-            "spice" -> apiService.getSpices()
-            else -> {
-                onResult(null, "Invalid category")
-                return
+    fun fetchProductDetails(onResult: (Boolean, String?, List<ProductsResponse>?) -> Unit) {
+        lifecycleOwner.lifecycleScope.launch {
+            val apiService = RetrofitInstance.create(ApiService::class.java)
+            val accessToken = TokenManager.getToken()
+
+            if (accessToken.isNullOrEmpty()) {
+                onResult(false, "No access token found", null)
+                return@launch
+            }
+
+            try {
+                val response = apiService.getProductDetails("Bearer $accessToken")
+
+                if (response.isSuccessful) {
+                    val productList = response.body()
+
+                    if (productList != null && productList.isNotEmpty()) {
+                        saveProductsLocally(productList)
+                        onResult(true, null, productList)
+                    } else {
+                        Log.e("ProductController", "Product data is missing or empty in the response")
+                        onResult(false, "Failed to fetch product details", null)
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("ProductController", "API Error: $errorBody")
+                    onResult(false, "Failed to fetch product details", null)
+                }
+            } catch (e: HttpException) {
+                Log.e("ProductController", "HTTP Error: ${e.message()}")
+                onResult(false, "Server error: ${e.message()}", null)
+            } catch (e: Exception) {
+                Log.e("ProductController", "Exception: ${e.localizedMessage}")
+                onResult(false, "Unexpected error: ${e.localizedMessage}", null)
             }
         }
-
-        // Enqueue the network request asynchronously
-        call.enqueue(object : Callback<List<Product>> {
-            override fun onResponse(call: Call<List<Product>>, response: Response<List<Product>>) {
-                if (response.isSuccessful) {
-                    onResult(response.body(), null)
-                } else {
-                    onResult(null, "Failed to load products")
-                }
-            }
-
-            override fun onFailure(call: Call<List<Product>>, t: Throwable) {
-                onResult(null, "Network error: ${t.message}")
-            }
-        })
     }
+
+
+
+    private fun saveProductsLocally(products: List<ProductsResponse>) {
+        val sharedPreferences = context.getSharedPreferences("productPrefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        val productsJson = Gson().toJson(products)
+        editor.putString("products", productsJson)
+        editor.apply()
+    }
+
 }

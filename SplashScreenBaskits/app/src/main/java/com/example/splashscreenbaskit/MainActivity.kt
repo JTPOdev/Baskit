@@ -1,5 +1,6 @@
 package com.example.splashscreenbaskit
 
+import EditStoreScreen
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -17,10 +18,11 @@ import com.example.splashscreenbaskit.AccountDetails.AddProductTest
 //import com.example.splashscreenbaskit.AccountDetails.AddProduct
 //import com.example.splashscreenbaskit.AccountDetails.EditStore
 import com.example.splashscreenbaskit.AccountDetails.NotificationsActivity
+import com.example.splashscreenbaskit.AccountDetails.ProductDisplayScreen
 import com.example.splashscreenbaskit.AccountDetails.RequestSentScreen
 import com.example.splashscreenbaskit.AccountDetails.RulesScreen
 import com.example.splashscreenbaskit.AccountDetails.SettingsActivity
-import com.example.splashscreenbaskit.AccountDetails.StoreEdit
+//import com.example.splashscreenbaskit.AccountDetails.StoreEdit
 import com.example.splashscreenbaskit.AccountDetails.StoreRequestScreen
 import com.example.splashscreenbaskit.Carts.CartScreen
 import com.example.splashscreenbaskit.Carts.CheckoutScreen
@@ -138,9 +140,9 @@ class MainActivity : ComponentActivity() {
                     composable("StoreRequestScreen") {
                         StoreRequestScreen(navController)
                     }
-                    composable("StoreEdit") {
-                        StoreEdit(navController = navController)
-                    }
+//                    composable("StoreEdit") {
+//                        StoreEdit(navController = navController)
+//                    }
 //                    composable("EditStore") {
 //                        EditStore(navController)
 //                    }
@@ -161,6 +163,12 @@ class MainActivity : ComponentActivity() {
                     }
                     composable("CalasiaoOrders") {
                         CalasiaoOrders(navController)
+                    }
+                    composable("ProductDisplayScreen") {
+                        ProductDisplayScreen(navController)
+                    }
+                    composable("EditStoreScreen") {
+                        EditStoreScreen(navController)
                     }
                 }
             }

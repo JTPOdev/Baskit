@@ -95,6 +95,13 @@ data class ProductResponse(
     val message: String
 )
 
+data class ProductsResponse(
+val product_name: String,
+val product_price: String,
+val product_category: String,
+val product_image: String?
+)
+
 //data class Product(
 //    val name: String,
 //    val price: Double = 0.0,

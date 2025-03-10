@@ -212,26 +212,51 @@ class StoreController
         header('HTTP/1.1 404 Not Found');
         return ['message' => 'No stores found for the specified origin.'];
     }
+    
+    // --------- GET STORE BY USER/TOKEN -------- //
+    public static function getStoreByUser($userId, $conn) {
+        $store = Store::getStoreByUserId($conn, $userId);
+        
+        if ($store) {
+            header('HTTP/1.1 200 OK');
+            return $store;
+        }
+    
+        header('HTTP/1.1 404 Not Found');
+        return ['message' => 'No store found for this user.'];
+    }
 
     // --------- ADD STORE IMAGE -------- //
-    public static function uploadStoreImage($storeId, $conn)
+    public static function uploadStoreImageByToken($userId, $conn)
     {
-        $storeId = (int) $storeId;
+        // Fetch the store based on the authenticated user ID
+        $store = Store::getStoreByUserId($conn, $userId);
+    
+        if (!$store) {
+            header('HTTP/1.1 404 Not Found');
+            return ['message' => 'No store found for this user.'];
+        }
+    
+        $storeId = $store['id']; // Extract store ID
+    
+        // Handle file upload
         $storeImagePath = self::uploadFile($_FILES['store_image'] ?? null, 'store_images');
-
+    
         if (isset($storeImagePath['error'])) {
             header('HTTP/1.1 400 Bad Request');
             return ['message' => 'File upload failed'];
         }
-
+    
+        // Update store image in the database
         if (Store::updateStoreImage($conn, $storeId, $storeImagePath['success'])) {
             header('HTTP/1.1 200 OK');
             return ['message' => 'Store image updated successfully.'];
         }
-
+    
         header('HTTP/1.1 500 Internal Server Error');
         return ['message' => 'Error updating store image.'];
     }
+    
 
     // --------- UPLOAD FILES -------- //
     private static function uploadFile($file, $folder)
@@ -257,7 +282,7 @@ class StoreController
         $targetPath = $uploadDir . $filename;
 
         return move_uploaded_file($file['tmp_name'], $targetPath) ?
-            ['success' => "/uploads/$folder/" . $filename] :
+            ['success' => "http://".$_SERVER['HTTP_HOST']."/uploads/$folder/" . $filename] :
             ['error' => 'Failed to upload file'];
     }
 }

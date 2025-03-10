@@ -33,10 +33,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.splashscreenbaskit.R
 import com.example.splashscreenbaskit.api.TokenManager
+import com.example.splashscreenbaskit.controller.UserStoreController
 import com.example.splashscreenbaskit.controllers.ProductController
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -61,9 +63,14 @@ fun AddProductTest(navController: NavController) {
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var selectedImage by remember { mutableStateOf<Bitmap?>(null) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var storeName by remember { mutableStateOf("Loading...") }
+    var storeNumber by remember { mutableStateOf("Loading...") }
+    var storeAddress by remember { mutableStateOf("Loading...") }
+    var dada by remember { mutableStateOf("Loading...") }
 
     val context = LocalContext.current
-    val productController = ProductController()
+    val productController = ProductController(LocalLifecycleOwner.current, context)
+    val userStoreController = UserStoreController(LocalLifecycleOwner.current, context)
     val token = TokenManager.getToken()
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -77,6 +84,23 @@ fun AddProductTest(navController: NavController) {
             } else {
                 val source = ImageDecoder.createSource(context.contentResolver, it)
                 ImageDecoder.decodeBitmap(source)
+            }
+        }
+    }
+
+    LaunchedEffect(true) {
+        userStoreController.fetchStoreDetails { success, errorMessage, store ->
+            if (success && store != null) {
+                storeName = store.store_name
+                storeNumber = store.store_phone_number
+                storeAddress = store.store_address
+
+
+            } else {
+                storeName = errorMessage ?: "Error loading store"
+                storeName = errorMessage ?: "Error loading store"
+                storeNumber = errorMessage ?: "Error loading store"
+                storeAddress = errorMessage ?: "Error loading store"
             }
         }
     }
@@ -183,21 +207,21 @@ fun AddProductTest(navController: NavController) {
                     verticalArrangement = Arrangement.spacedBy(7.dp)
                 ) {
                     Text(
-                        text = "Aling Nena's Store",
+                        text = "$storeName",
                         fontSize = 14.sp,
                         fontFamily = poppinsFontFamily,
                         fontWeight = FontWeight.Normal,
                         color = Color.Black
                     )
                     Text(
-                        text = "0900-000-0000",
+                        text = "$storeNumber",
                         fontSize = 14.sp,
                         fontFamily = poppinsFontFamily,
                         fontWeight = FontWeight.Normal,
                         color = Color.Black
                     )
                     Text(
-                        text = "123 Street, Dagupan City, Pang.",
+                        text = "$storeAddress",
                         fontSize = 14.sp,
                         fontFamily = poppinsFontFamily,
                         fontWeight = FontWeight.Normal,

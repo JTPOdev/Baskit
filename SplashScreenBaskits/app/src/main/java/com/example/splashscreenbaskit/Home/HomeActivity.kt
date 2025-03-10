@@ -2,6 +2,7 @@ package com.example.splashscreenbaskit.Home
 
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,7 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
@@ -26,8 +26,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -43,94 +46,35 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.example.splashscreenbaskit.AccountDetails.AccountActivity
-import com.example.splashscreenbaskit.AccountDetails.NotificationsActivity
-import com.example.splashscreenbaskit.AccountDetails.SettingsActivity
+import coil.compose.AsyncImage
+import com.example.splashscreenbaskit.AccountDetails.*
 import com.example.splashscreenbaskit.Carts.CartScreen
 import com.example.splashscreenbaskit.Carts.CheckoutScreen
-import com.example.splashscreenbaskit.LoginSignup.LoginActivity
+import com.example.splashscreenbaskit.LoginSignup.*
 import com.example.splashscreenbaskit.Products.ProductScreen
 import com.example.splashscreenbaskit.R
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
 import com.example.splashscreenbaskit.viewmodel.CartViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.layout.ContentScale
-import com.example.splashscreenbaskit.AccountDetails.AddProductTest
-import com.example.splashscreenbaskit.AccountDetails.RequestSentScreen
-import com.example.splashscreenbaskit.AccountDetails.RulesScreen
-import com.example.splashscreenbaskit.AccountDetails.ShopInformationScreen
-import com.example.splashscreenbaskit.AccountDetails.StoreEdit
-import com.example.splashscreenbaskit.LoginSignup.ChangePasswordScreen
-import com.example.splashscreenbaskit.LoginSignup.EnterOTPScreen
-import com.example.splashscreenbaskit.LoginSignup.ForgotPasswordScreen
-import com.example.splashscreenbaskit.LoginSignup.ResetPasswordScreen
-import com.example.splashscreenbaskit.Tagabili.CalasiaoOrders
-import com.example.splashscreenbaskit.Tagabili.DagupanOrders
-import com.example.splashscreenbaskit.Tagabili.TB_HomeContent
-import com.example.splashscreenbaskit.Tagabili.TB_OrdersContent
 
-data class Vendor(val name: String, val imageRes: Int)
-data class Product(val name: String, val imageRes: Int, val category: String, val price: Double = 0.0)
-
-val dagupanVendors = listOf(
-    Vendor("Aling Kristine's Shop", R.drawable.vendor1),
-    Vendor("Green Store", R.drawable.vendors3),
-    Vendor("Dagupan Market", R.drawable.food),
-    Vendor("Prime Goods", R.drawable.food)
+// Data Models
+data class Vendor(
+    val id: Int,
+    val name: String,
+    val imageUrl: String
 )
 
-val calasiaoVendors = listOf(
-    Vendor("Calasiao Fresh", R.drawable.food),
-    Vendor("Golden Harvest", R.drawable.food),
-    Vendor("Market Plus", R.drawable.food),
-    Vendor("Sunny Farms", R.drawable.food)
+data class Product(
+    val id: Int,
+    val name: String,
+    val imageUrl: String,
+    val category: String,
+    val price: Double
 )
 
-val vegetableList = listOf(
-    Product("Carrot", R.drawable.carrot, "Vegetables", 20.50),
-    Product("Broccoli", R.drawable.brocolli, "Vegetables", 2.00),
-    Product("Spinach", R.drawable.spinach, "Vegetables", 1.20),
-    Product("Potato", R.drawable.potato, "Vegetables", 0.80)
-)
+//ipaddress to palitan mo na alng
+//307
 
-val fruitList = listOf(
-    Product("Apple", R.drawable.apple, "Fruits", 0.50),
-    Product("Orange", R.drawable.orange, "Fruits", 0.60),
-    Product("Banana", R.drawable.banana, "Fruits", 0.30),
-    Product("Mango", R.drawable.mango, "Fruits", 1.00),
-    Product("Grapes", R.drawable.grapes, "Fruits", 2.50),
-    Product("Pineapple", R.drawable.pineapple, "Fruits", 3.00)
-)
-
-val meatList = listOf(
-    Product("Beef", R.drawable.beef, "Meats", 10.00),
-    Product("Chicken", R.drawable.chicken, "Meats", 5.00),
-    Product("Pork", R.drawable.pork, "Meats", 7.00)
-)
-
-val fishList = listOf(
-    Product("Tilapia", R.drawable.tilipia, "Fish", 120.00),
-    Product("Bangus", R.drawable.bangus, "Fish", 140.00)
-)
-
-val spiceList = listOf(
-    Product("Pepper", R.drawable.pepper, "Spices", 2.00),
-    Product("Salt", R.drawable.pepper, "Spices", 1.00),
-    Product("Paprika", R.drawable.paprika, "Spices", 3.00),
-    Product("Cinnamon", R.drawable.paprika, "Spices", 4.00)
-)
-
-val frozenFoodList = listOf(
-    Product("Pizza", R.drawable.icecream, "Frozen Foods", 5.00),
-    Product("Ice Cream", R.drawable.icecream, "Frozen Foods", 3.50),
-    Product("Frozen Peas", R.drawable.frozen_peas, "Frozen Foods", 2.00),
-    Product("Chicken Nuggets", R.drawable.nuggets, "Frozen Foods", 4.50)
-)
-
-
+// UI Components
 @Composable
 fun CategoryRow(selectedCategory: MutableState<String?>, navController: NavController) {
     val categories = listOf("STORE", "Vegetables", "Fruits", "Meats", "Fish", "Spices", "Frozen Foods")
@@ -195,8 +139,8 @@ fun ProductGrid(products: List<Product>, navController: NavController) {
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Image(
-                                painter = painterResource(id = product.imageRes),
+                            AsyncImage(
+                                model = product.imageUrl,
                                 contentDescription = "Product Image",
                                 modifier = Modifier
                                     .height(100.dp)
@@ -224,9 +168,9 @@ fun ProductGrid(products: List<Product>, navController: NavController) {
 }
 
 @Composable
-fun VendorGrid(products: List<Vendor>, navController: NavController) {
+fun VendorGrid(vendors: List<Vendor>, navController: NavController) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        products.forEach { vendor ->
+        vendors.forEach { vendor ->
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
                 modifier = Modifier
@@ -234,15 +178,15 @@ fun VendorGrid(products: List<Vendor>, navController: NavController) {
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .height(200.dp)
                     .clickable {
-                        navController.navigate("ShopScreen/${vendor.name}/${vendor.imageRes}")
+                        navController.navigate("ShopScreen/${vendor.name}/${vendor.id}")
                     },
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column {
                     Box(modifier = Modifier.fillMaxWidth()) {
-                        Image(
-                            painter = painterResource(id = vendor.imageRes),
+                        AsyncImage(
+                            model = vendor.imageUrl,
                             contentDescription = vendor.name,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -300,22 +244,6 @@ fun VendorGrid(products: List<Vendor>, navController: NavController) {
 }
 
 @Composable
-fun LabelChip(text: String) {
-    Box(
-        modifier = Modifier
-            .background(Color(0xFFFFA726), shape = RoundedCornerShape(20.dp))
-            .padding(horizontal = 12.dp, vertical = 4.dp)
-    ) {
-        Text(
-            text = text,
-            fontSize = 12.sp,
-            color = Color.White,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
 fun SearchBar(navController: NavController) {
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
 
@@ -352,7 +280,6 @@ fun SearchBar(navController: NavController) {
         Spacer(modifier = Modifier.width(10.dp))
         IconButton(
             onClick = { navController.navigate("NotificationsActivity") },
-            enabled = true,
             modifier = Modifier.size(25.dp)
         ) {
             Icon(
@@ -376,9 +303,12 @@ fun SliderCard() {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-
-            SlideImg(modifier = Modifier.fillMaxSize().clipToBounds())
-
+            AsyncImage(
+                model = "//api",
+                contentDescription = "Slider Image",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
         }
     }
 }
@@ -398,8 +328,7 @@ fun LocationSelector(selectedLocation: MutableState<String?>) {
                 color = if (selectedLocation.value == "Dagupan") Color.Black else Color(0xFFBFBFBF),
                 fontSize = 15.sp,
                 fontFamily = poppinsFontFamily,
-                fontWeight = FontWeight.Bold,
-                style = TextStyle(fontFamily = poppinsFontFamily)
+                fontWeight = FontWeight.Bold
             )
         }
         TextButton(onClick = { selectedLocation.value = "Calasiao" }) {
@@ -408,7 +337,7 @@ fun LocationSelector(selectedLocation: MutableState<String?>) {
                 color = if (selectedLocation.value == "Calasiao") Color.Black else Color(0xFFBFBFBF),
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                style = TextStyle(fontFamily = poppinsFontFamily)
+                fontFamily = poppinsFontFamily
             )
         }
     }
@@ -478,23 +407,29 @@ sealed class BottomBarScreen(val route: String, val title: String, val icon: Ima
 }
 
 @Composable
-fun ShopScreen(navController: NavController, vendorName: String, imageRes: Int) {
-    // State for selected category
-    val selectedCategory = remember { mutableStateOf<String?>("Vegetables") } // Default to "Vegetables"
+fun ShopScreen(navController: NavController, vendorName: String, vendorId: Int, viewModel: HomeViewModel = viewModel()) {
+    val selectedCategory = remember { mutableStateOf<String?>("Vegetables") }
+
+//    LaunchedEffect(selectedCategory.value) {
+//        selectedCategory.value?.let { category ->
+//            viewModel.fetchProducts(category)
+//        }
+//    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Header with Store Image and Back Button
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(250.dp)
         ) {
-            Image(
-                painter = painterResource(id = imageRes),
+            val vendor = viewModel.dagupanVendors.find { it.id == vendorId }
+                ?: viewModel.calasiaoVendors.find { it.id == vendorId }
+            AsyncImage(
+                model = vendor?.imageUrl ?: "",
                 contentDescription = vendorName,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -518,13 +453,11 @@ fun ShopScreen(navController: NavController, vendorName: String, imageRes: Int) 
             }
         }
 
-        // Content Area
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Display Store Name
             Text(
                 text = "$vendorName's Store",
                 color = Color.Black,
@@ -533,32 +466,13 @@ fun ShopScreen(navController: NavController, vendorName: String, imageRes: Int) 
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-
-            // Category Row
-            CategoryRow(
-                selectedCategory = selectedCategory,
-                navController = navController
-            )
-
+            CategoryRow(selectedCategory = selectedCategory, navController = navController)
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Display Products Based on Selected Category
-            when (selectedCategory.value) {
-                "Vegetables" -> ProductGrid(products = vegetableList, navController = navController)
-                "Fruits" -> ProductGrid(products = fruitList, navController = navController)
-                "Meats" -> ProductGrid(products = meatList, navController = navController)
-                "Fish" -> ProductGrid(products = fishList, navController = navController)
-                "Spices" -> ProductGrid(products = spiceList, navController = navController)
-                "Frozen Foods" -> ProductGrid(products = frozenFoodList, navController = navController)
-                else -> {
-                    Text(
-                        text = "Select a category to view products",
-                        color = Color.Gray,
-                        fontSize = 16.sp,
-                        fontFamily = poppinsFontFamily,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
-                }
+            if (viewModel.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            } else {
+                ProductGrid(products = viewModel.products, navController = navController)
             }
         }
     }
@@ -576,7 +490,7 @@ fun HomeScreen() {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            if (currentRoute !in listOf("ProductScreen/{productName}", "CartScreen", "CheckoutScreen", "ShopScreen/{vendorName}/{imageRes}")) {
+            if (currentRoute !in listOf("ProductScreen/{productName}", "CartScreen", "CheckoutScreen", "ShopScreen/{vendorName}/{vendorId}")) {
                 BottomBar(navController = navController)
             }
         }
@@ -592,7 +506,7 @@ fun HomeScreen() {
                 modifier = Modifier.weight(1f)
             ) {
                 composable(BottomBarScreen.Home.route) {
-                    HomeContent(navController)
+                    HomeContent(navController = navController)
                 }
                 composable(BottomBarScreen.Cart.route) {
                     CartScreen(cartViewModel = cartViewModel, navController = navController)
@@ -604,10 +518,11 @@ fun HomeScreen() {
                     "ProductScreen/{productName}",
                     arguments = listOf(navArgument("productName") { type = NavType.StringType })
                 ) { backStackEntry ->
+                    val productName = backStackEntry.arguments?.getString("productName")
                     ProductScreen(
                         navController = navController,
                         cartViewModel = cartViewModel,
-                        productName = backStackEntry.arguments?.getString("productName")
+                        productName = productName
                     )
                 }
                 composable("CartScreen") {
@@ -644,35 +559,17 @@ fun HomeScreen() {
                     RulesScreen(navController)
                 }
                 composable(
-                    "ShopScreen/{vendorName}/{imageRes}",
+                    "ShopScreen/{vendorName}/{vendorId}",
                     arguments = listOf(
                         navArgument("vendorName") { type = NavType.StringType },
-                        navArgument("imageRes") { type = NavType.IntType }
+                        navArgument("vendorId") { type = NavType.IntType }
                     )
                 ) { backStackEntry ->
                     ShopScreen(
                         navController = navController,
                         vendorName = backStackEntry.arguments?.getString("vendorName") ?: "",
-                        imageRes = backStackEntry.arguments?.getInt("imageRes") ?: 0
+                        vendorId = backStackEntry.arguments?.getInt("vendorId") ?: 0
                     )
-                }
-                composable("StoreEdit") {
-                    StoreEdit(navController = navController)
-                }
-                composable("AddProductTest") {
-                    AddProductTest(navController)
-                }
-                composable("TB_HomeActivity") {
-                    TB_HomeContent(navController)
-                }
-                composable("TB_OrdersActivity") {
-                    TB_OrdersContent(navController)
-                }
-                composable("DagupanOrders") {
-                    DagupanOrders(navController)
-                }
-                composable("CalasiaoOrders") {
-                    CalasiaoOrders(navController)
                 }
             }
         }
@@ -680,10 +577,24 @@ fun HomeScreen() {
 }
 
 @Composable
-fun HomeContent(navController: NavController) {
+fun HomeContent(navController: NavController, viewModel: HomeViewModel = viewModel()) {
     val selectedCategory = remember { mutableStateOf<String?>(null) }
     val selectedLocation = remember { mutableStateOf<String?>("Dagupan") }
     val scrollState = rememberScrollState()
+
+    LaunchedEffect(selectedLocation.value) {
+        when (selectedLocation.value) {
+            "Dagupan" -> viewModel.fetchDagupanVendors()
+            "Calasiao" -> viewModel.fetchCalasiaoVendors()
+        }
+    }
+//    LaunchedEffect(selectedCategory.value) {
+//        selectedCategory.value?.let { category ->
+//            if (category != "STORE") {
+//                viewModel.fetchProducts(category)
+//            }
+//        }
+//    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -733,26 +644,19 @@ fun HomeContent(navController: NavController) {
             CategoryRow(selectedCategory, navController)
             Spacer(modifier = Modifier.height(5.dp))
 
-            when (selectedCategory.value) {
-                null, "STORE" -> {
-                    when (selectedLocation.value) {
-                        "Dagupan" -> VendorGrid(products = dagupanVendors, navController = navController)
-                        "Calasiao" -> VendorGrid(products = calasiaoVendors, navController = navController)
+            if (viewModel.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            } else {
+                when (selectedCategory.value) {
+                    null, "STORE" -> {
+                        when (selectedLocation.value) {
+                            "Dagupan" -> VendorGrid(vendors = viewModel.dagupanVendors, navController = navController)
+                            "Calasiao" -> VendorGrid(vendors = viewModel.calasiaoVendors, navController = navController)
+                        }
                     }
+                    else -> ProductGrid(products = viewModel.products, navController = navController)
                 }
-                "Vegetables" -> ProductGrid(products = vegetableList, navController = navController)
-                "Fruits" -> ProductGrid(products = fruitList, navController = navController)
-                "Meats" -> ProductGrid(products = meatList, navController = navController)
-                "Fish" -> ProductGrid(products = fishList, navController = navController)
-                "Spices" -> ProductGrid(products = spiceList, navController = navController)
-                "Frozen Foods" -> ProductGrid(products = frozenFoodList, navController = navController)
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomeActivity() {
-    HomeScreen()
 }

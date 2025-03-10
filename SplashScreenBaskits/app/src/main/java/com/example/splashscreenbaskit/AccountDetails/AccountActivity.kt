@@ -88,7 +88,7 @@ fun AccountActivity(navController: NavController) {
                             popUpTo("AccountActivity") { inclusive = true}
                         }
                     } else if (userRole == "Seller") {
-                        navController.navigate("StoreEdit") {
+                        navController.navigate("EditStoreScreen") {
                             popUpTo("AccountActivity") { inclusive = true}
                         }
                     }else{

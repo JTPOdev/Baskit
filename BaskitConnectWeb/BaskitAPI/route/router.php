@@ -216,9 +216,10 @@ $router->get('/store/all/{origin}', function($origin) use ($conn) {
 });
 
 // ADD STORE IMAGE
-$router->post('/store/image/{id}', function($id) use ($conn) {
+$router->post('/store/image', function() use ($conn) {
     header('Content-Type: application/json');
-    echo json_encode(StoreController::uploadStoreImage($id, $conn));
+    $authUserId = AuthMiddleware::checkAuth();
+    echo json_encode(StoreController::uploadStoreImageByToken($authUserId, $conn));
 });
 
 // DELETE STORE
@@ -227,10 +228,17 @@ $router->delete('/store/delete/{id}', function($storeId) use ($conn) {
     echo json_encode(Store::deleteStore($conn, $storeId));
 });
 
+// GET STORE USING TOKEN
+$router->get('/store/mystore', function() use ($conn) {
+    header('Content-Type: application/json');
+    $authUserId = AuthMiddleware::checkAuth();
+    echo json_encode(StoreController::getStoreByUser($authUserId, $conn));
+}, true, false);
+
 // ---------- PRODUCT ---------- //
 $router->post('/product/create', function() use ($conn) {
-    header('Content-Type: application/json'); 
-    echo json_encode(ProductController::create($_POST, $conn));
+    header('Content-Type: application/json');
+    (ProductController::create($_POST, $conn));
 }, true, false);
     
 $router->get('/product/list', function() use ($conn) {
@@ -252,18 +260,41 @@ $router->delete('/product/delete/{id}', function($id) use ($conn) {
     echo json_encode(ProductController::delete($id, $conn));
 },true, false);
 
+$router->get('/store/products', function() use ($conn) {
+    ProductController::getAllProductsByStore($conn);
+});
+
 
 // ---------- PRODUCT CATEGORIES ---------- //
 $categories = ['fruit', 'vegetable', 'meat', 'fish', 'frozen', 'spice'];
+
 foreach ($categories as $category) {
-    $router->get("/product/category/{$category}/{storeId}", function($storeId) use ($conn, $category) {
+    $router->get("/product/category/{$category}", function() use ($conn, $category) {
+        header('Content-Type: application/json');
+        $userId = AuthMiddleware::checkAuth();
+
+        if (!$userId) {
+            http_response_code(401);
+            echo json_encode(['message' => 'Unauthorized']);
+            return;
+        }
+        $store = Store::getStoreByUserId($conn, $userId);
+
+        if (!$store) {
+            http_response_code(404);
+            echo json_encode(['message' => 'No store associated with this user']);
+            return;
+        }
+        $storeId = $store['id'];
+
         $method = 'getProductsByCategory' . ucfirst($category);
         echo json_encode(ProductController::$method($conn, $storeId));
     });
 }
 
+
 foreach ($categories as $category) {
-    $router->get("/product/category/{$category}", function() use ($conn, $category) {
+    $router->get("/product/Allcategory/{$category}", function() use ($conn, $category) {
         $method = 'getAllProductsByCategory' . ucfirst($category);
         echo json_encode(ProductController::$method($conn));
     });

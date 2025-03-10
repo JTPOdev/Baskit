@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 //Jorose House 192.168.100.111
 //Enrollment 24_24 10.40.97.123
 object RetrofitInstance {
-    private const val BASE_URL = "http://172.20.10.4:8000/"
+    private const val BASE_URL = "http://192.168.100.111:8000/"
     // Add the logging interceptor
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

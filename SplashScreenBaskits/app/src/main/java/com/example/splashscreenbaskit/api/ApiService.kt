@@ -4,11 +4,13 @@ import LoginRequest
 import LoginResponse
 import Product
 import ProductResponse
+import ProductsResponse
 import RegisterRequest
 import RegisterResponse
 import StoreRequestResponse
 import StoreResponse
 import UserResponse
+import com.example.splashscreenbaskit.Home.Vendor
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
@@ -56,6 +58,8 @@ interface ApiService {
     @GET("store/all")
     suspend fun getStoreDetails(@Header("Authorization") authorization: String): Response<List<StoreResponse>>
 
+    @GET("store/products")
+    suspend fun getProductDetails(@Header("Authorization") authorization: String): Response<List<ProductsResponse>>
 
     @Multipart
     @POST("product/create")
@@ -67,24 +71,15 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Call<ProductResponse>
 
-    @GET("product/category/{category}")
-    fun getProductsByCategory(@Path("category") category: String): Call<List<Product>>
+    @GET("vendors/dagupan")
+    suspend fun getDagupanVendors(): List<Vendor>
 
-    @GET("product/category/fruit")
-    fun getFruits(): Call<List<Product>>
+    @GET("vendors/calasiao")
+    suspend fun getCalasiaoVendors(): List<Vendor>
 
-    @GET("product/category/vegetable")
-    fun getVegetables(): Call<List<Product>>
-
-    @GET("product/category/meat")
-    fun getMeats(): Call<List<Product>>
-
-    @GET("product/category/fish")
-    fun getFish(): Call<List<Product>>
-
-    @GET("product/category/frozen")
-    fun getFrozenProducts(): Call<List<Product>>
-
-    @GET("product/category/spice")
-    fun getSpices(): Call<List<Product>>
+    @GET("products/{category}")
+    suspend fun getProductsByCategory(@Path("category") category: String): List<Product>
 }
+
+
+

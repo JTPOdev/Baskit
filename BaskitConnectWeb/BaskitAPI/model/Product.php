@@ -44,6 +44,18 @@ class Product
         error_log("Retrieved products: " . json_encode($products));
         return $products;
     }
+
+    public static function getProductsByStore($conn, $storeId)
+    {
+        $sql = "SELECT * FROM products WHERE store_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $storeId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
     
     public static function getProductById($id, $conn) {
         $sql = "SELECT p.*, s.store_name, s.owner_name, s.store_address, s.store_phone_number 

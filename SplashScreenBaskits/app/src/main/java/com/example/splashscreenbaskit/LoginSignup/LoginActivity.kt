@@ -65,6 +65,7 @@ fun LoginActivity(navController: NavController) {
     val context = LocalContext.current
     val loginController = remember { LoginController(lifecycleOwner, context) }
     var loginMessage by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
 
     //--------- COLORS ---------//
     val DarkGray = Color(0xFF48444C)
@@ -207,10 +208,11 @@ fun LoginActivity(navController: NavController) {
 
         Button(
             onClick = {
+                isLoading = true
                 loginController.login(UsernameOrEmail.value, password.value) { success, message, role, errors ->
                     loginMessage = message
                     Toast.makeText(context, loginMessage, Toast.LENGTH_SHORT).show()
-
+                    isLoading = false
                     if (success) {
                         when (role) {
                             "Consumer" -> navController.navigate("HomeActivity")
@@ -235,7 +237,18 @@ fun LoginActivity(navController: NavController) {
                 contentColor = Color.White
             )
         ) {
-            Text(text = "Login", fontFamily = poppinsFontFamily)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "Login", fontFamily = poppinsFontFamily)
+
+                if (isLoading) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(150.dp))

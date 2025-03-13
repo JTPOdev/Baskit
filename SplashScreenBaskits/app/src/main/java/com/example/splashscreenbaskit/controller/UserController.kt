@@ -30,15 +30,15 @@ class UserController(private val lifecycleOwner: LifecycleOwner, private val con
                 val response = apiService.getUserDetails("Bearer $accessToken")
 
                 if (response.isSuccessful) {
-                    val userJson = response.body()?.user
+                    val users = response.body()?.user
 
-                    if (userJson != null) {
+                    if (users != null) {
                         val user = User(
-                            name = "${userJson.firstname ?: ""} ${userJson.lastname ?: ""}",
-                            username = userJson.username ?: "Unknown",
-                            email = userJson.email ?: "Unknown",
-                            contactNumber = userJson.mobile_number ?: "Unknown",
-                            role = userJson.role ?: "Unknown"
+                            name = "${users.firstname ?: ""} ${users.lastname ?: ""}",
+                            username = users.username ?: "Unknown",
+                            email = users.email ?: "Unknown",
+                            contactNumber = users.mobile_number ?: "Unknown",
+                            role = users.role ?: "Unknown"
                         )
 
                         saveUserLocally(user)
@@ -72,17 +72,5 @@ class UserController(private val lifecycleOwner: LifecycleOwner, private val con
             putString("role", user.role)
             apply()
         }
-    }
-
-    fun getUser(): User {
-        val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        return User(
-            name = sharedPreferences.getString("name", "Unknown") ?: "",
-            username = sharedPreferences.getString("username", "Unknown") ?: "",
-            email = sharedPreferences.getString("email", "Unknown") ?: "",
-            contactNumber = sharedPreferences.getString("contactNumber", "Unknown") ?: "",
-            role = sharedPreferences.getString("role", "Unknown") ?: "",
-            password = "********"
-        )
     }
 }

@@ -4,10 +4,10 @@ package com.example.splashscreenbaskit.Carts
 data class CartItem(
     val id: String,
     val name: String,
-    val price: Double,
+    val weight: String,
     val quantity: Int,
-    val weight: String? = null,
-    val imageResId: Int? = null
+    val price: Double,
+    val imageResId: String
 )
 
 data class Product(

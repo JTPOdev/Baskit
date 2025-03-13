@@ -1,14 +1,18 @@
 package com.example.splashscreenbaskit.api
 
+import CartItem
+import CartResponse
 import LoginRequest
 import LoginResponse
 import Product
+import ProductOriginResponse
 import ProductResponse
 import ProductsResponse
 import RegisterRequest
 import RegisterResponse
 import StoreRequestResponse
 import StoreResponse
+import UploadImageResponse
 import UserResponse
 import com.example.splashscreenbaskit.Home.Vendor
 import okhttp3.MultipartBody
@@ -62,6 +66,17 @@ interface ApiService {
     suspend fun getProductDetails(@Header("Authorization") authorization: String): Response<List<ProductsResponse>>
 
     @Multipart
+    @POST("store/image")
+    suspend fun uploadStoreImage(
+        @Header("Authorization") token: String,
+        @Part storeImage: MultipartBody.Part
+    ): Response<UploadImageResponse>
+
+    @GET("/products")
+    suspend fun getProductsByOrigin(@Header("Authorization") authorization: String,
+                                    @Query("product_origin") productOrigin: String): Response<List<ProductsResponse>>
+
+    @Multipart
     @POST("product/create")
     fun addProduct(
         @Part("product_name") productName: RequestBody,
@@ -77,8 +92,10 @@ interface ApiService {
     @GET("vendors/calasiao")
     suspend fun getCalasiaoVendors(): List<Vendor>
 
-    @GET("products/{category}")
-    suspend fun getProductsByCategory(@Path("category") category: String): List<Product>
+    @POST("/cart/add")
+    fun addToCart(@Body cartItem: CartItem): Call<CartResponse>
+
+
 }
 
 

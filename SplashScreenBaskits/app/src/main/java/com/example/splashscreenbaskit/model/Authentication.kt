@@ -17,10 +17,6 @@ data class LoginResponse(
     val role: String
 )
 
-data class LogoutRequest(
-    val access_token: String,
-)
-
 data class RegisterRequest(
     val username: String,
     val email: String,
@@ -38,7 +34,6 @@ data class RegisterRequest(
 data class RegisterResponse(
     val message: String
 )
-
 
 data class UserResponse(
     val status: String,
@@ -84,6 +79,17 @@ data class StoreResponse(
     val created_at: String
 )
 
+data class CartResponse(
+    val success: Boolean,
+    val message: String
+)
+
+data class CartItem(
+    val product_id: Int,
+    val product_quantity: Int,
+    val product_portion: String,
+    val product_image_url: String
+)
 
 data class StoreRequestResponse(
     val success: Boolean,
@@ -91,24 +97,34 @@ data class StoreRequestResponse(
     val data: StoreResponse?
 )
 
+data class UploadImageResponse(
+    val success: Boolean,
+    val imageUrl: String
+)
+
 data class ProductResponse(
     val message: String
 )
 
 data class ProductsResponse(
-val product_name: String,
-val product_price: String,
-val product_category: String,
-val product_image: String?
+    val id: Int,
+    val product_name: String,
+    val product_price: String,
+    val product_category: String,
+    val product_origin: String,
+    val product_image: String?,
+    val store_name: String,
+    val store_phone_number: String,
+    val store_address: String,
 )
 
-//data class Product(
-//    val name: String,
-//    val price: Double = 0.0,
-//    val category: String? = null,
-//    val imageBitmap: Bitmap?
-//) : java.io.Serializable
-
+data class ProductOriginResponse(
+    val product_name: String,
+    val product_price: String,
+    val product_category: String,
+    val product_origin: String,
+    val product_image: String?
+)
 
 data class Product(
     val name: String,
@@ -117,10 +133,5 @@ data class Product(
     val category: String?
 )
 
-//data class Product(
-//    val product_name: String,
-//    val product_category: String,
-//    val product_price: Double,
-//    val product_image: String?
-//)
+
 

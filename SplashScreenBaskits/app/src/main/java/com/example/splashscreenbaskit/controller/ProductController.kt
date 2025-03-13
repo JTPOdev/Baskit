@@ -1,6 +1,7 @@
 package com.example.splashscreenbaskit.controllers
 
 import Product
+import ProductOriginResponse
 import ProductResponse
 import ProductsResponse
 import android.content.Context
@@ -99,8 +100,6 @@ class ProductController(private val lifecycleOwner: LifecycleOwner, private val 
         }
     }
 
-
-
     private fun saveProductsLocally(products: List<ProductsResponse>) {
         val sharedPreferences = context.getSharedPreferences("productPrefs", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
@@ -108,5 +107,4 @@ class ProductController(private val lifecycleOwner: LifecycleOwner, private val 
         editor.putString("products", productsJson)
         editor.apply()
     }
-
 }

@@ -1,10 +1,9 @@
 package com.example.splashscreenbaskit.Products
 
+import ProductsResponse
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,93 +11,56 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.splashscreenbaskit.Carts.CartItem
-import com.example.splashscreenbaskit.Carts.Product
+import coil.compose.rememberImagePainter
 import com.example.splashscreenbaskit.R
+import com.example.splashscreenbaskit.controller.CartController
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
-import com.example.splashscreenbaskit.viewmodel.CartViewModel
+import kotlinx.coroutines.delay
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.Popup
 
-// Product lists for each category
-val vegetableList = listOf(
-    Product("Carrot", R.drawable.carrot, "Vegetables", 1.50),
-    Product("Broccoli", R.drawable.brocolli, "Vegetables", 2.00),
-    Product("Spinach", R.drawable.spinach, "Vegetables", 1.20),
-    Product("Potato", R.drawable.potato, "Vegetables", 0.80)
-)
 
-val fruitList = listOf(
-    Product("Apple", R.drawable.apple, "Fruits", 0.50),
-    Product("Orange", R.drawable.orange, "Fruits", 0.60),
-    Product("Banana", R.drawable.banana, "Fruits", 0.30),
-    Product("Mango", R.drawable.mango, "Fruits", 1.00),
-    Product("Grapes", R.drawable.grapes, "Fruits", 2.50),
-    Product("Pineapple", R.drawable.pineapple, "Fruits", 3.00)
-)
-
-val meatList = listOf(
-    Product("Beef", R.drawable.beef, "Meats", 10.00),
-    Product("Chicken", R.drawable.chicken, "Meats", 5.00),
-    Product("Pork", R.drawable.pork, "Meats", 7.00),
-)
-
-val fishList = listOf(
-    Product("Tilapia", R.drawable.tilipia, "Fish", 4.00),
-    Product("Bangus", R.drawable.bangus, "Fish", 10.00)
-)
-
-val spiceList = listOf(
-    Product("Pepper", R.drawable.pepper, "Spices", 2.00),
-    Product("Salt", R.drawable.slat, "Spices", 1.00),
-    Product("Paprika", R.drawable.paprika, "Spices", 3.00),
-
-    )
-
-val frozenFoodList = listOf(
-    Product("Tender Juicy Hotdog", R.drawable.hotdog, "Frozen Foods", 5.00),
-    Product("Ice Cream", R.drawable.icecream, "Frozen Foods", 3.50),
-    Product("Frozen Peas", R.drawable.frozen_peas, "Frozen Foods", 2.00),
-    Product("Chicken Nuggets", R.drawable.nuggets, "Frozen Foods", 4.50)
-)
-@Preview(showBackground = true)
-@Composable
-fun ProductScreenPreview() {
-    val navController = rememberNavController()
-    val cartViewModel = CartViewModel()
-    val productName = "Apple"
-
-    ProductScreen(
-        navController = navController,
-        cartViewModel = cartViewModel,
-        productName = productName
-    )
-}
 @Composable
 fun ProductScreen(
-    navController: NavController,
-    cartViewModel: CartViewModel,
-    productName: String?
+    navController: NavController = rememberNavController(),
+    productName: String,
+    productsResponse: ProductsResponse,
+    cartController: CartController
 ) {
-    // Combine all product lists for lookup
-    val allProducts = vegetableList + fruitList + meatList + fishList + spiceList + frozenFoodList
-    val product = allProducts.find { it.name == productName } ?: return // Exit if product not found
+    val product = productsResponse
+
+    val showDialog = remember { mutableStateOf(false) }
+
+    LaunchedEffect(showDialog.value) {
+        if (showDialog.value) {
+            delay(1000)
+            showDialog.value = false
+        }
+    }
 
     val context = LocalContext.current
     var quantity by remember { mutableStateOf(1) }
-    var selectedWeight by remember { mutableStateOf("1 pc") }
-    val basePrice = product.price // Use product's base price
-    val priceIncrease = 30.0 // Same increment as AppleScreen; adjust per product if needed
+    var selectedWeight by remember { mutableStateOf("") }
+    val basePrice = product.product_price.toDouble()
+    val priceIncrease = 30.0
 
     // Calculate price based on selected weight
     val priceForWeight = when (selectedWeight) {
@@ -109,6 +71,10 @@ fun ProductScreen(
         else -> basePrice
     }
     val totalPrice = priceForWeight * quantity
+
+    val onBackPressed = {
+        navController.popBackStack()
+    }
 
     Column(
         modifier = Modifier
@@ -124,14 +90,13 @@ fun ProductScreen(
             contentAlignment = Alignment.TopCenter
         ) {
             Image(
-                painter = painterResource(id = product.imageRes),
-                contentDescription = product.name,
+                painter = rememberImagePainter(product.product_image),
+                contentDescription = product.product_name,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(320.dp),
                 contentScale = ContentScale.Crop
             )
-
 
             IconButton(
                 onClick = { navController.popBackStack() },
@@ -160,7 +125,7 @@ fun ProductScreen(
                 .padding(horizontal = 20.dp)
         ) {
             Text(
-                text = product.name,
+                text = product.product_name,
                 fontSize = 32.sp,
                 fontFamily = poppinsFontFamily,
                 fontWeight = FontWeight.Bold
@@ -242,21 +207,21 @@ fun ProductScreen(
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = "Martha Rosario (Aling Martha’s)",
+                        text = product.store_name.replace("+", " "),
                         fontSize = 14.sp,
                         fontFamily = poppinsFontFamily,
                         fontWeight = FontWeight.Normal,
                         color = Color.Black
                     )
                     Text(
-                        text = "0900-000-0000",
+                        text = product.store_phone_number,
                         fontSize = 14.sp,
                         fontFamily = poppinsFontFamily,
                         fontWeight = FontWeight.Normal,
                         color = Color.Black
                     )
                     Text(
-                        text = "123 Street, Dagupan City",
+                        text = product.store_address.replace("+", " "),
                         fontSize = 14.sp,
                         fontFamily = poppinsFontFamily,
                         fontWeight = FontWeight.Normal,
@@ -272,7 +237,7 @@ fun ProductScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                listOf("1 pc", "1/4 kg", "1/2 kg", "1 kg").forEach { option ->
+                listOf("1pc", "1/4kg", "1/2kg", "1kg").forEach { option ->
                     Button(
                         modifier = Modifier
                             .height(55.dp)
@@ -322,33 +287,115 @@ fun ProductScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
-
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ){
             Button(
                 onClick = {
-                    val cartItem = CartItem(
-                        id = "${product.name}-${selectedWeight}-${System.currentTimeMillis()}",
-                        name = product.name,
-                        weight = selectedWeight,
-                        quantity = quantity,
-                        price = priceForWeight,
-                        imageResId = product.imageRes
-                    )
-                    cartViewModel.addToCart(cartItem)
-                    Toast.makeText(context, "Added to Basket!", Toast.LENGTH_SHORT).show()
+                    if (selectedWeight.isNotEmpty()) {
+                        cartController.addToCart(
+                            productId = product.id,
+                            productQuantity = quantity,
+                            productPortion = selectedWeight,
+                            productImageUrl = product.product_image ?: ""
+                        ) { response ->
+                            if (response.success) {
+                                Toast.makeText(context, "Failed to add to Basket!", Toast.LENGTH_SHORT)
+                                    .show()
+                            } else {
+                                showDialog.value = true
+                            }
+                        }
+                    }
                 },
+                enabled = selectedWeight.isNotEmpty(),
                 shape = RoundedCornerShape(30.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (selectedWeight.isEmpty()) Color.Gray else Color.White,
+                    contentColor = Color.Black
+                ),
                 modifier = Modifier
                     .height(58.dp)
                     .width(205.dp)
+                    .align(Alignment.CenterEnd)
             ) {
                 Text(
                     text = "Add to Basket",
-                    color = Color.Black,
+                    color = if (selectedWeight.isEmpty()) Color.White else Color.Black,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    fontFamily = poppinsFontFamily
+                    fontSize = 20.sp
                 )
+            }
+
+                if (showDialog.value) {
+                    Popup(
+                        onDismissRequest = { showDialog.value = false } ,
+                        alignment = Alignment.Center
+                    ) {
+                        val scale = remember { Animatable(0f) } // START HIDDEN
+                        val alpha = remember { Animatable(1f) } // START VISIBLE
+
+                        LaunchedEffect(Unit) {
+                            // POP IN
+                            scale.animateTo(
+                                1.2f,
+                                animationSpec = tween(150, easing = FastOutSlowInEasing)
+                            ) // OVERSHOOT
+                            scale.animateTo(
+                                1f,
+                                animationSpec = tween(100, easing = FastOutSlowInEasing)
+                            )  // SETTLE
+
+                            delay(1200) // VISIBLE FOR 1.2s
+
+                            // FADE
+                            alpha.animateTo(
+                                0f,
+                                animationSpec = tween(300, easing = FastOutSlowInEasing)
+                            ) // FADE OUT
+
+                            showDialog.value = false
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Transparent)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) { },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .graphicsLayer(
+                                        scaleX = scale.value,
+                                        scaleY = scale.value,
+                                        alpha = alpha.value
+                                    )
+                                    .shadow(12.dp, shape = RoundedCornerShape(12.dp))
+                                    .background(Color.White, shape = RoundedCornerShape(12.dp))
+                                    .padding(horizontal = 30.dp, vertical = 20.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "Added to Basket!",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp,
+                                    color = Color.Black
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                Image(
+                                    painter = painterResource(id = R.drawable.verified), // IMAGE
+                                    contentDescription = "Checkmark",
+                                    modifier = Modifier.size(60.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberImagePainter
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
@@ -179,8 +180,9 @@ fun CartItemView(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                // Use Coil's rememberImagePainter to load the image URL
                 Image(
-                    painter = painterResource(id = item.imageResId ?: R.drawable.noorders_img),
+                    painter = rememberImagePainter(item.imageResId ?: "default_image_url"),
                     contentDescription = "Product Image",
                     modifier = Modifier.size(80.dp)
                 )

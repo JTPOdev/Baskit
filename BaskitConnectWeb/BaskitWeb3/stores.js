@@ -1,3 +1,5 @@
+import { BASE_URL } from "./config.js"; 
+
 document.addEventListener("DOMContentLoaded", () => {
     const navLinks = document.querySelectorAll("ul li a");
     const currentPage = window.location.pathname.split("/").pop(); 
@@ -31,181 +33,184 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
-    const navLinks = document.querySelectorAll(".nav-link");
-    const indicator = document.querySelector(".nav-indicator");
-
-    function moveIndicator(link) {
-        const linkRect = link.getBoundingClientRect();
-        const navRect = link.closest("ul").getBoundingClientRect();
-        
-        indicator.style.top = `${link.offsetTop}px`;
-        indicator.style.left = `${link.offsetLeft}px`;
-        indicator.style.width = `${link.offsetWidth}px`;
-    }
-
-    navLinks.forEach(link => {
-        link.addEventListener("click", function (event) {
-            event.preventDefault(); 
-            navLinks.forEach(l => l.classList.remove("active"));
-            this.classList.add("active");
-            moveIndicator(this);
-        });
-    });
-
-    const activeLink = document.querySelector(".nav-link.active");
-    if (activeLink) {
-        moveIndicator(activeLink);
-    }
+    fetchStores();
 });
 
+let allStores = [];
+let isAllSelected = true;
 
-function addStore(image, name, owner, contact, status) {
-    const storeContainer = document.getElementById("storeContainer");
-
-    const storeDiv = document.createElement("div");
-    storeDiv.classList.add("store-item");
-
-    const storeImg = document.createElement("img");
-    storeImg.src = image;
-    storeImg.alt = name;
-
-    const storeName = document.createElement("div");
-    storeName.classList.add("store-name");
-    storeName.textContent = name;
-
-    const storeDetails = document.createElement("div");
-    storeDetails.classList.add("store-details");
-
-    const storeOwner = document.createElement("div");
-    storeOwner.innerHTML = "<span>Owner:</span> " + owner;
-
-    const storeContact = document.createElement("div");
-    storeContact.innerHTML = "<span>Contact:</span> " + contact;
-
-    const storeType = document.createElement("div");
-    storeType.innerHTML = "<span>Store Type:</span> " + status;
-
-    const deleteIcon = document.createElement("i");
-    deleteIcon.classList.add("fa-solid", "fa-trash", "delete-icon");
-    deleteIcon.addEventListener("click", () => {
-        storeContainer.removeChild(storeDiv);
-    });
-
-    storeDetails.appendChild(deleteIcon);
-    storeDetails.appendChild(storeOwner);
-    storeDetails.appendChild(storeContact);
-    storeDetails.appendChild(storeType);
-
-    storeDiv.appendChild(storeImg);
-    storeDiv.appendChild(storeName);
-    storeDiv.appendChild(storeDetails);
-
-    storeContainer.appendChild(storeDiv);
+function fetchStores() {
+    fetch(`${BASE_URL}/store/all`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Fetched stores:", data);
+            allStores = data;
+            filterStores();
+        })
+        .catch(error => console.error("Error fetching stores:", error));
 }
 
-addStore("img/logo.png", "ABC Store", "ABC DEF", "09123456789", "Partnership");
-addStore("img/logo.png", "XYZ Store", "LMN OPQ", "09987654321", "Standard");
-addStore("img/logo.png", "QWE Store", "RTY UIO", "09234567890", "Partnership");
-
-
-let stores = [
-    { image: "img/logo.png", name: "ABC Store", owner: "ABC DEF", contact: "09123456789", status: "Partnership", location: "dagupan" },
-    { image: "img/logo.png", name: "XYZ Store", owner: "LMN OPQ", contact: "09987654321", status: "Standard", location: "calasiao" },
-    { image: "img/logo.png", name: "QWE Store", owner: "RTY UIO", contact: "09234567890", status: "Partnership", location: "dagupan" },
-];
-
-
-const storeProducts = {
-    "ABC Store": [
-        { name: "Apple", image: "img/logo.png", price: "₱10", category: "fruit" },
-        { name: "Carrot", image: "img/logo.png", price: "₱5", category: "vegetable" }
-    ],
-    "XYZ Store": [
-        { name: "Chicken", image: "img/logo.png", price: "₱20", category: "meat" },
-        { name: "Salmon", image: "img/logo.png", price: "₱25", category: "fish" }
-    ],
-    "QWE Store": [
-        { name: "Hotdog", image: "img/logo.png", price: "₱8", category: "frozen" },
-        { name: "Black Pepper", image: "img/logo.png", price: "₱3", category: "spices" }
-    ]
-};
-
-
-
-function displayStores(filteredStores) {
+function displayStores(stores) {
     const storeContainer = document.getElementById("storeContainer");
-    storeContainer.innerHTML = "";  
+    storeContainer.innerHTML = "";
 
-    filteredStores.forEach(store => {
+    if (stores.length === 0) {
+        storeContainer.innerHTML = "<p>No stores found.</p>";
+        return;
+    }
+
+    stores.forEach(store => {
         const storeDiv = document.createElement("div");
         storeDiv.classList.add("store-item");
 
         const storeImg = document.createElement("img");
-        storeImg.src = store.image;
-        storeImg.alt = store.name;
+        storeImg.src = store.store_image || "img/default.png";
+        storeImg.alt = store.store_name;
 
         const storeName = document.createElement("div");
         storeName.classList.add("store-name");
-        storeName.textContent = store.name;
+        storeName.textContent = store.store_name;
 
         const storeDetails = document.createElement("div");
         storeDetails.classList.add("store-details");
 
         const storeOwner = document.createElement("div");
-        storeOwner.innerHTML = "<span>Owner:</span> " + store.owner;
+        storeOwner.innerHTML = "<span>Owner:</span> " + store.owner_name;
 
         const storeContact = document.createElement("div");
-        storeContact.innerHTML = "<span>Contact:</span> " + store.contact;
+        storeContact.innerHTML = "<span>Contact:</span> " + store.store_phone_number;
 
         const storeType = document.createElement("div");
-        storeType.innerHTML = "<span>Store Type:</span> " + store.status;
+        storeType.innerHTML = "<span>Store Type:</span> " + store.store_status;
 
-        const deleteIcon = document.createElement("i");
-        deleteIcon.classList.add("fa-solid", "fa-trash", "delete-icon");
-        deleteIcon.addEventListener("click", () => {
-            storeContainer.removeChild(storeDiv);
-        });
+        const storeOrigin = document.createElement("div");
+        storeOrigin.innerHTML = "<span>Location:</span> " + store.store_origin;
 
-        storeDetails.appendChild(deleteIcon);
         storeDetails.appendChild(storeOwner);
         storeDetails.appendChild(storeContact);
         storeDetails.appendChild(storeType);
+        storeDetails.appendChild(storeOrigin);
 
         storeDiv.appendChild(storeImg);
         storeDiv.appendChild(storeName);
         storeDiv.appendChild(storeDetails);
 
         storeDiv.addEventListener("click", function () {
-            showProducts(store.name);
+            showProducts(store.store_name);
         });
 
         storeContainer.appendChild(storeDiv);
     });
 }
 
+function filterStores() {
+    if (isAllSelected) {
+        displayStores(allStores);
+        return;
+    }
+
+    const selectedType = document.getElementById("filterSelect").value;
+    const selectedLocation = document.getElementById("locationSelect").value;
+    const normalizedType = selectedType.toLowerCase() === "partnership" ? "partner" : selectedType.toLowerCase();
+
+    let filteredStores = allStores.filter(store => {
+        const matchesType = store.store_status.toLowerCase() === normalizedType;
+        const matchesLocation = store.store_origin.toLowerCase() === selectedLocation;
+        return matchesType && matchesLocation;
+    });
+
+    console.log("Filtered stores:", filteredStores);
+    displayStores(filteredStores);
+}
+
+document.getElementById("allButton").addEventListener("click", function () {
+    isAllSelected = !isAllSelected;
+    this.classList.toggle("active", isAllSelected);
+
+    if (isAllSelected) {
+        document.getElementById("filterSelect").selectedIndex = 0;
+        document.getElementById("locationSelect").selectedIndex = 0;
+    }
+
+    filterStores();
+});
+
+
+document.getElementById("filterSelect").addEventListener("change", function () {
+    isAllSelected = false;
+    document.getElementById("allButton").classList.remove("active");
+    filterStores();
+});
+
+document.getElementById("locationSelect").addEventListener("change", function () {
+    isAllSelected = false;
+    document.getElementById("allButton").classList.remove("active");
+    filterStores();
+});
+
+let storeProducts = {};
+
 function showProducts(storeName) {
-    document.getElementById("storeContainer").style.display = "none"; 
-    document.getElementById("productContainer").style.display = "block"; 
-
-    document.getElementById("filterSelect").style.display = "none"; 
-    document.getElementById("locationSelect").style.display = "none"; 
-
+    document.getElementById("allButton").style.display = "none";
+    document.getElementById("storeContainer").style.display = "none";
+    document.getElementById("productContainer").style.display = "block";
+    document.getElementById("filterSelect").style.display = "none";
+    document.getElementById("locationSelect").style.display = "none";
     document.getElementById("categorySelect").style.display = "inline-block";
     document.getElementById("backButton").style.display = "inline-block";
 
     document.querySelector(".header-left h1").textContent = storeName;
-
-    
     document.getElementById("categorySelect").dataset.storeName = storeName;
-    displayProducts(storeName, "all");
+
+    document.getElementById("categorySelect").value = "all";
+
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+        alert("Session expired. Please log in again.");
+        window.location.href = "login.html";
+        return;
+    }
+
+    fetch(`${BASE_URL}/product/list`, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "Accept": "application/json"
+        }
+    })
+    .then(response => {
+        if (response.status === 401) {
+            alert("Session expired. Please log in again.");
+            localStorage.clear();
+            window.location.href = "login.html";
+            return;
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (!data) return;
+        const filteredProducts = data.filter(product => product.store_name === storeName);
+        storeProducts[storeName] = filteredProducts;
+
+        displayProducts(storeName, "all");
+    })
+    .catch(error => console.error("Error fetching products:", error));
 }
 
 function displayProducts(storeName, category) {
     const productList = document.getElementById("productList");
-    productList.innerHTML = ""; 
+    productList.innerHTML = "";
 
-    const products = storeProducts[storeName] || [];
-    const filteredProducts = category === "all" ? products : products.filter(p => p.category === category);
+    if (!storeProducts[storeName] || storeProducts[storeName].length === 0) {
+        productList.innerHTML = "<p>No products available.</p>";
+        return;
+    }
+
+    const products = storeProducts[storeName];
+
+    const filteredProducts = category === "all"
+        ? products
+        : products.filter(p => p.product_category.toLowerCase() === category.toLowerCase());
 
     if (filteredProducts.length === 0) {
         productList.innerHTML = "<p>No products available in this category.</p>";
@@ -215,10 +220,9 @@ function displayProducts(storeName, category) {
             productCard.classList.add("product-card");
 
             productCard.innerHTML = `
-            <img src="${product.image}" alt="${product.name}">
-            <h3>${product.name} - ${product.price}</h3> 
-        `;
-        
+                <img src="${product.product_image}" alt="${product.product_name}">
+                <h3>${product.product_name} - ₱${product.product_price}</h3>
+            `;
 
             productList.appendChild(productCard);
         });
@@ -232,44 +236,23 @@ document.getElementById("categorySelect").addEventListener("change", function ()
 });
 
 document.getElementById("backButton").addEventListener("click", function () {
-    document.getElementById("productContainer").style.display = "none"; 
-    document.getElementById("storeContainer").style.display = "flex"; 
-
-    document.getElementById("filterSelect").style.display = "inline-block"; 
+    document.getElementById("productContainer").style.display = "none";
+    document.getElementById("storeContainer").style.display = "flex";
+    document.getElementById("filterSelect").style.display = "inline-block";
     document.getElementById("locationSelect").style.display = "inline-block";
+    document.getElementById("categorySelect").style.display = "none";
+    document.getElementById("backButton").style.display = "none";
+    document.querySelector(".header-left h1").textContent = "Stores";
 
-    document.getElementById("categorySelect").style.display = "none"; 
-    document.getElementById("backButton").style.display = "none"; 
-
-    document.querySelector(".header-left h1").textContent = "Stores"; 
+    const allButton = document.getElementById("allButton");
+    allButton.style.display = "inline-block";
+    allButton.classList.add("active");
 });
 
-
-
-
-function filterStores() {
-    const selectedType = document.getElementById("filterSelect").value;
-    const selectedLocation = document.getElementById("locationSelect").value;
-
-    let filteredStores = stores.filter(store => {
-        const matchesType = selectedType === "all" || store.status.toLowerCase() === selectedType;
-        const matchesLocation = selectedLocation === "all" || store.location.toLowerCase() === selectedLocation;
-        return matchesType && matchesLocation;
-    });
-
-    displayStores(filteredStores);
-}
-
-document.getElementById("filterSelect").addEventListener("change", filterStores);
-document.getElementById("locationSelect").addEventListener("change", filterStores);
-
-displayStores(stores);
-
-    // Logout
-    document.getElementById("logoutButton").addEventListener("click", function () {
-        if (confirm("Are you sure you want to log out?")) {
-            sessionStorage.clear();
-            localStorage.clear();
-            window.location.href = "login.html";
-        }
-    });
+document.getElementById("logoutButton").addEventListener("click", function () {
+    if (confirm("Are you sure you want to log out?")) {
+        sessionStorage.clear();
+        localStorage.clear();
+        window.location.href = "login.html";
+    }
+});

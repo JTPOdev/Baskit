@@ -14,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,10 +34,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.splashscreenbaskit.R
+import com.example.splashscreenbaskit.api.ApiService
 import com.example.splashscreenbaskit.api.TokenManager
 import com.example.splashscreenbaskit.controller.UserStoreController
 import com.example.splashscreenbaskit.controllers.ProductController
@@ -69,8 +72,9 @@ fun AddProductTest(navController: NavController) {
     var dada by remember { mutableStateOf("Loading...") }
 
     val context = LocalContext.current
+    val apiService = remember { RetrofitInstance.create(ApiService::class.java) }
     val productController = ProductController(LocalLifecycleOwner.current, context)
-    val userStoreController = UserStoreController(LocalLifecycleOwner.current, context)
+    val userStoreController = UserStoreController(LocalLifecycleOwner.current, context, apiService)
     val token = TokenManager.getToken()
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -124,6 +128,7 @@ fun AddProductTest(navController: NavController) {
                     .padding(top = 70.dp, start = 40.dp)
                     .align(Alignment.TopStart)
                     .size(24.dp)
+                    .zIndex(1f)
                     .background(Color(0xAAFFFFFF), shape = CircleShape)
             ) {
                 Icon(
@@ -136,7 +141,8 @@ fun AddProductTest(navController: NavController) {
 
             Box(
                 modifier = Modifier
-                    .size(100.dp)
+                    .fillMaxWidth()
+                    .height(315.dp)
                     .clickable { imagePickerLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
@@ -145,25 +151,26 @@ fun AddProductTest(navController: NavController) {
                         bitmap = selectedImage!!.asImageBitmap(),
                         contentDescription = "Selected Product Image",
                         modifier = Modifier
-                            .size(100.dp)
+                            .fillMaxWidth()
+                            .size(315.dp)
                             .background(Color.White, shape = RoundedCornerShape(10.dp))
                     )
                 } else {
                     Icon(
                         painter = painterResource(id = R.drawable.add_image),
                         contentDescription = "Add Product Image",
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(50.dp),
                         tint = Color.Unspecified
                     )
                 }
             }
-        } // goods
+        }
+
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(horizontal = 20.dp, vertical = 20.dp)
         ) {
             OutlinedTextField(
                 value = product,
@@ -175,9 +182,7 @@ fun AddProductTest(navController: NavController) {
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 ) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 shape = RoundedCornerShape(10.dp),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -186,6 +191,8 @@ fun AddProductTest(navController: NavController) {
                 )
             )
 
+            Spacer(modifier = Modifier.height(30.dp))
+
             Text(
                 text = "Seller Description",
                 fontSize = 16.sp,
@@ -193,8 +200,10 @@ fun AddProductTest(navController: NavController) {
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.fillMaxWidth()
             )
+
             Box(
                 modifier = Modifier
+                    .padding(top = 7.dp)
                     .fillMaxWidth()
                     .height(120.dp)
                     .background(Color(0xFFEEEDED), shape = RoundedCornerShape(10.dp)),
@@ -229,6 +238,7 @@ fun AddProductTest(navController: NavController) {
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(25.dp))
 
             Text(
                 text = "Set Price",
@@ -249,7 +259,7 @@ fun AddProductTest(navController: NavController) {
                 ) },
                 modifier = Modifier
                     .width(136.dp)
-                    .height(56.dp),
+                    .padding(top = 7.dp),
                 singleLine = true,
                 shape = RoundedCornerShape(10.dp),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -257,6 +267,7 @@ fun AddProductTest(navController: NavController) {
                     unfocusedBorderColor = Color.Gray
                 )
             )
+            Spacer(modifier = Modifier.height(25.dp))
 
             Text(
                 text = "Select Weight",
@@ -267,15 +278,13 @@ fun AddProductTest(navController: NavController) {
             )
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.wrapContentWidth() .padding(top = 7.dp),
+                horizontalArrangement = Arrangement.spacedBy(7.dp)
             ) {
                 val weightOptions = listOf("1 pc", "1/4 kg", "1/2 kg", "1 kg")
                 weightOptions.forEach { option ->
                     Button(
-                        modifier = Modifier
-                            .height(48.dp)
-                            .weight(1f),
+                        modifier = Modifier.wrapContentWidth() .height(48.dp),
                         onClick = {
                             selectedWeights = selectedWeights.toMutableSet().apply {
                                 if (contains(option)) remove(option) else add(option)
@@ -296,6 +305,7 @@ fun AddProductTest(navController: NavController) {
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(30.dp))
 
             Text(
                 text = "Select Category",
@@ -305,37 +315,45 @@ fun AddProductTest(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
 
+            val categories = listOf(
+                Pair("Fruits", "FRUITS"),
+                Pair("Vegetables", "VEGETABLES"),
+                Pair("Fish", "FISH"),
+                Pair("Meats", "MEAT"),
+                Pair("Frozen Foods", "FROZEN"),
+                Pair("Spices", "SPICES")
+            )
+
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.height(180.dp)
+                modifier = Modifier.height(200.dp).padding(top = 7.dp)
             ) {
-                val categories = listOf("Fruits", "Vegetables", "Fish", "Meats", "Frozen Foods", "Spices")
-                items(categories.size) { index ->
-                    val category = categories[index]
+                items(categories) { category ->
+                    val (label, value) = category
+
                     Button(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        onClick = { selectedCategory = category },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        onClick = { selectedCategory = value },
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (selectedCategory == category) Color(0xFF5CC163) else Color(0xFFEEEDED),
-                            contentColor = if (selectedCategory == category) Color.White else Color(0xFF747474)
+                            containerColor = if (selectedCategory == value) Color(0xFF5CC163) else Color(0xFFEEEDED),
+                            contentColor = if (selectedCategory == value) Color.White else Color(0xFF747474)
                         )
                     ) {
                         Text(
-                            text = category,
+                            text = label,
                             fontSize = 16.sp,
                             fontFamily = poppinsFontFamily,
-                            fontWeight = if (selectedCategory == category) FontWeight.Bold else FontWeight.SemiBold,
+                            fontWeight = if (selectedCategory == value) FontWeight.Bold else FontWeight.SemiBold,
                             textAlign = TextAlign.Center
                         )
                     }
                 }
             }
 
+            Spacer(modifier = Modifier.height(20.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

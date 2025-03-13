@@ -55,16 +55,17 @@
         </div>
 
         <div class="container-controls">
+
+            <button id="allButton" class="filter-button active">All</button>
+
             <select id="filterSelect">
                 <option value="" disabled selected>Store Type</option>
-                <option value="all">All</option>
                 <option value="partnership">Partnership</option>
                 <option value="standard">Standard</option>
             </select>
 
             <select id="locationSelect">
                 <option value="" disabled selected>Location</option>
-                <option value="all">All</option>
                 <option value="dagupan">Dagupan</option>
                 <option value="calasiao">Calasiao</option>
             </select>
@@ -72,13 +73,13 @@
             <button id="backButton" class="backBtn" style="display: none;">Back</button>  
             
             <select id="categorySelect" style="display: none;">
-                <option value="all" selected>All</option>
-                <option value="fruit">Fruit</option>
-                <option value="vegetable">Vegetable</option>
-                <option value="meat">Meat</option>
-                <option value="fish">Fish</option>
-                <option value="frozen">Frozen</option>
-                <option value="spices">Spices</option>
+                <option value="all">All</option>
+                <option value="FRUITS">Fruit</option>
+                <option value="VEGETABLES">Vegetable</option>
+                <option value="MEAT">Meat</option>
+                <option value="FISH">Fish</option>
+                <option value="FROZEN">Frozen</option>
+                <option value="SPICES">Spices</option>
             </select>
         </div>
     
@@ -95,7 +96,7 @@
     </div>
     
 
-    <script src="stores.js"></script> 
+    <script type="module" src="stores.js"></script> 
     
 </body>
 </html>

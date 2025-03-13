@@ -1,6 +1,5 @@
 package com.example.splashscreenbaskit.controller
 
-import LogoutRequest
 import RetrofitInstance
 import android.content.Context
 import android.util.Log

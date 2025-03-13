@@ -1,4 +1,4 @@
-const BASE_URL = "http://10.40.97.123/BaskitConnect/BaskitAPI/public";
+import { BASE_URL } from "./config.js"; 
 
 const passwordField = document.getElementById('password');
 const togglePassword = document.getElementById('togglePassword');

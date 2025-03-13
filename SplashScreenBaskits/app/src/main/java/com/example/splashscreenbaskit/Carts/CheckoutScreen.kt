@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberImagePainter
 import com.example.splashscreenbaskit.R
 @Preview(showBackground = true)
 @Composable
@@ -357,8 +358,9 @@ fun CheckoutItemView(item: CartItem) {
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Use Coil's rememberImagePainter to load the image from a URL string
             Image(
-                painter = painterResource(id = item.imageResId ?: R.drawable.noorders_img),
+                painter = rememberImagePainter(item.imageResId ?: "default_image_url"),
                 contentDescription = "Product Image",
                 modifier = Modifier
                     .size(80.dp)
@@ -366,14 +368,18 @@ fun CheckoutItemView(item: CartItem) {
             )
             Spacer(modifier = Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = item.name,
+                Text(
+                    text = item.name,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = poppinsFontFamily)
-                Text(text = "${item.quantity}pcs",
+                    fontFamily = poppinsFontFamily
+                )
+                Text(
+                    text = "${item.quantity} pcs",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    fontFamily = poppinsFontFamily)
+                    fontFamily = poppinsFontFamily
+                )
             }
             Text(
                 text = "₱${"%.2f".format(item.price * item.quantity)}",

@@ -1,14 +1,23 @@
 package com.example.splashscreenbaskit.Home
 
+import EditStoreScreen
+import ProductsResponse
+import StoreResponse
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,6 +39,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -47,14 +58,27 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.splashscreenbaskit.AccountDetails.*
 import com.example.splashscreenbaskit.Carts.CartScreen
 import com.example.splashscreenbaskit.Carts.CheckoutScreen
 import com.example.splashscreenbaskit.LoginSignup.*
 import com.example.splashscreenbaskit.Products.ProductScreen
 import com.example.splashscreenbaskit.R
+import com.example.splashscreenbaskit.Tagabili.CalasiaoOrders
+import com.example.splashscreenbaskit.Tagabili.DagupanOrders
+import com.example.splashscreenbaskit.Tagabili.TB_HomeContent
+import com.example.splashscreenbaskit.Tagabili.TB_OrdersContent
+import com.example.splashscreenbaskit.api.ApiService
+import com.example.splashscreenbaskit.controller.CartController
+import com.example.splashscreenbaskit.controllers.ProductByOriginController
+import com.example.splashscreenbaskit.controllers.ProductController
+import com.example.splashscreenbaskit.controllers.StoreByOriginController
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
 import com.example.splashscreenbaskit.viewmodel.CartViewModel
+import com.google.gson.Gson
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 // Data Models
 data class Vendor(
@@ -62,17 +86,6 @@ data class Vendor(
     val name: String,
     val imageUrl: String
 )
-
-data class Product(
-    val id: Int,
-    val name: String,
-    val imageUrl: String,
-    val category: String,
-    val price: Double
-)
-
-//ipaddress to palitan mo na alng
-//307
 
 // UI Components
 @Composable
@@ -102,142 +115,6 @@ fun CategoryRow(selectedCategory: MutableState<String?>, navController: NavContr
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-            }
-        }
-    }
-}
-
-@Composable
-fun ProductGrid(products: List<Product>, navController: NavController) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        products.chunked(2).forEach { rowProducts ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 30.dp, end = 30.dp, bottom = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                rowProducts.forEach { product ->
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0)),
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(170.dp)
-                            .width(154.dp)
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable {
-                                navController.navigate("ProductScreen/${product.name}")
-                            },
-                        shape = RoundedCornerShape(10.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 5.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            AsyncImage(
-                                model = product.imageUrl,
-                                contentDescription = "Product Image",
-                                modifier = Modifier
-                                    .height(100.dp)
-                                    .width(135.dp)
-                                    .padding(top = 8.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = product.name,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 16.sp,
-                                fontFamily = poppinsFontFamily,
-                                modifier = Modifier.padding(8.dp)
-                            )
-                        }
-                    }
-                }
-                if (rowProducts.size == 1) {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun VendorGrid(vendors: List<Vendor>, navController: NavController) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        vendors.forEach { vendor ->
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .height(200.dp)
-                    .clickable {
-                        navController.navigate("ShopScreen/${vendor.name}/${vendor.id}")
-                    },
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Column {
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        AsyncImage(
-                            model = vendor.imageUrl,
-                            contentDescription = vendor.name,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(150.dp)
-                                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-                            contentScale = ContentScale.Crop
-                        )
-                        Box(
-                            modifier = Modifier
-                                .padding(12.dp)
-                                .background(Color(0xFFFFA726), shape = RoundedCornerShape(20.dp))
-                                .padding(horizontal = 12.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = "Top Store",
-                                fontSize = 12.sp,
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = poppinsFontFamily
-                            )
-                        }
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = vendor.name,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            fontFamily = poppinsFontFamily,
-                            modifier = Modifier.padding(top = 5.dp, end = 8.dp)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .background(Color(0xFFFFA726), shape = RoundedCornerShape(20.dp))
-                                .padding(horizontal = 12.dp, vertical = 5.dp)
-                        ) {
-                            Text(
-                                text = "Recommended",
-                                fontSize = 12.sp,
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = poppinsFontFamily
-                            )
-                        }
-                    }
-                }
             }
         }
     }
@@ -410,12 +287,6 @@ sealed class BottomBarScreen(val route: String, val title: String, val icon: Ima
 fun ShopScreen(navController: NavController, vendorName: String, vendorId: Int, viewModel: HomeViewModel = viewModel()) {
     val selectedCategory = remember { mutableStateOf<String?>("Vegetables") }
 
-//    LaunchedEffect(selectedCategory.value) {
-//        selectedCategory.value?.let { category ->
-//            viewModel.fetchProducts(category)
-//        }
-//    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -468,12 +339,6 @@ fun ShopScreen(navController: NavController, vendorName: String, vendorId: Int, 
             )
             CategoryRow(selectedCategory = selectedCategory, navController = navController)
             Spacer(modifier = Modifier.height(16.dp))
-
-            if (viewModel.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            } else {
-                ProductGrid(products = viewModel.products, navController = navController)
-            }
         }
     }
 }
@@ -490,7 +355,10 @@ fun HomeScreen() {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            if (currentRoute !in listOf("ProductScreen/{productName}", "CartScreen", "CheckoutScreen", "ShopScreen/{vendorName}/{vendorId}")) {
+            if (currentRoute !in listOf("ProductScreen/{productName}/{productResponse}",
+                    "CartScreen", "CheckoutScreen", "ShopScreen/{vendorName}/{vendorId}",
+                    "StoreRequestScreen", "RulesScreen", "EditStoreScreen", "RequestSentScreen",
+                    "AddProductTest", "ProductScreen" )) {
                 BottomBar(navController = navController)
             }
         }
@@ -506,7 +374,16 @@ fun HomeScreen() {
                 modifier = Modifier.weight(1f)
             ) {
                 composable(BottomBarScreen.Home.route) {
-                    HomeContent(navController = navController)
+                    val context = LocalContext.current
+                    val lifecycleOwner = LocalLifecycleOwner.current
+                    val productByOriginController = remember { ProductByOriginController(lifecycleOwner, context) }
+                    val storeByOriginController = remember { StoreByOriginController(lifecycleOwner, context) }
+
+                    HomeContent(
+                        navController = navController,
+                        productByOriginController = productByOriginController,
+                        storeByOriginController = storeByOriginController
+                    )
                 }
                 composable(BottomBarScreen.Cart.route) {
                     CartScreen(cartViewModel = cartViewModel, navController = navController)
@@ -515,16 +392,28 @@ fun HomeScreen() {
                     AccountActivity(navController)
                 }
                 composable(
-                    "ProductScreen/{productName}",
-                    arguments = listOf(navArgument("productName") { type = NavType.StringType })
+                    "ProductScreen/{productName}/{productResponse}",
+                    arguments = listOf(
+                        navArgument("productName") { type = NavType.StringType },
+                        navArgument("productResponse") { type = NavType.StringType }
+                    )
                 ) { backStackEntry ->
-                    val productName = backStackEntry.arguments?.getString("productName")
+
+                    val apiService = RetrofitInstance.create(ApiService::class.java)
+                    val cartController = remember { CartController(apiService) }
+
+                    val productName = backStackEntry.arguments?.getString("productName") ?: ""
+                    val productJson = backStackEntry.arguments?.getString("productResponse") ?: ""
+                    val productResponse = Gson().fromJson(productJson, ProductsResponse::class.java)
+
                     ProductScreen(
                         navController = navController,
-                        cartViewModel = cartViewModel,
-                        productName = productName
+                        cartController = cartController,
+                        productName = productName,
+                        productsResponse = productResponse
                     )
                 }
+
                 composable("CartScreen") {
                     CartScreen(cartViewModel = cartViewModel, navController = navController)
                 }
@@ -558,6 +447,24 @@ fun HomeScreen() {
                 composable("RulesScreen") {
                     RulesScreen(navController)
                 }
+                composable("EditStoreScreen") {
+                    EditStoreScreen(navController)
+                }
+                composable("AddProductTest") {
+                    AddProductTest(navController)
+                }
+                composable("TB_HomeActivity") {
+                    TB_HomeContent(navController)
+                }
+                composable("TB_OrdersActivity") {
+                    TB_OrdersContent(navController)
+                }
+                composable("DagupanOrders") {
+                    DagupanOrders(navController)
+                }
+                composable("CalasiaoOrders") {
+                    CalasiaoOrders(navController)
+                }
                 composable(
                     "ShopScreen/{vendorName}/{vendorId}",
                     arguments = listOf(
@@ -576,87 +483,389 @@ fun HomeScreen() {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HomeContent(navController: NavController, viewModel: HomeViewModel = viewModel()) {
-    val selectedCategory = remember { mutableStateOf<String?>(null) }
+fun HomeContent(
+    navController: NavController,
+    productByOriginController: ProductByOriginController,
+    storeByOriginController: StoreByOriginController
+) {
+
+    val selectedCategory = remember { mutableStateOf<String?>("STORE") }
     val selectedLocation = remember { mutableStateOf<String?>("Dagupan") }
-    val scrollState = rememberScrollState()
 
-    LaunchedEffect(selectedLocation.value) {
-        when (selectedLocation.value) {
-            "Dagupan" -> viewModel.fetchDagupanVendors()
-            "Calasiao" -> viewModel.fetchCalasiaoVendors()
-        }
-    }
-//    LaunchedEffect(selectedCategory.value) {
-//        selectedCategory.value?.let { category ->
-//            if (category != "STORE") {
-//                viewModel.fetchProducts(category)
-//            }
-//        }
-//    }
+    val allProducts = remember { mutableStateListOf<ProductsResponse>() }
+    val filteredProducts = remember { mutableStateListOf<ProductsResponse>() }
+    val stores = remember { mutableStateListOf<StoreResponse>() }
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color.White
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(40.dp))
-            Image(
-                painter = painterResource(id = R.drawable.baskit_logo),
-                contentDescription = "Logo",
-                modifier = Modifier.size(50.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(
-                text = "Shop Smarter, Not Harder",
-                fontFamily = poppinsFontFamily,
-                fontSize = 12.sp,
-                color = Color.Black,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.offset(y = (-20).dp)
-            )
-            Spacer(modifier = Modifier.height(15.dp))
-            SearchBar(navController)
-            Spacer(modifier = Modifier.height(30.dp))
-            SliderCard()
-            Spacer(modifier = Modifier.height(15.dp))
-            LocationSelector(selectedLocation)
-            Box(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(6.dp)
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(Color.Gray.copy(alpha = 0.5f), Color.Transparent)
-                            )
-                        )
-                )
-            }
-            CategoryRow(selectedCategory, navController)
-            Spacer(modifier = Modifier.height(5.dp))
+    val isLoading = remember { mutableStateOf(false) }
+    val errorMessage = remember { mutableStateOf<String?>(null) }
+    val isStoreLoading = remember { mutableStateOf(false) }
+    val storeErrorMessage = remember { mutableStateOf<String?>(null) }
 
-            if (viewModel.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            } else {
-                when (selectedCategory.value) {
-                    null, "STORE" -> {
-                        when (selectedLocation.value) {
-                            "Dagupan" -> VendorGrid(vendors = viewModel.dagupanVendors, navController = navController)
-                            "Calasiao" -> VendorGrid(vendors = viewModel.calasiaoVendors, navController = navController)
-                        }
-                    }
-                    else -> ProductGrid(products = viewModel.products, navController = navController)
+    val categoryMapping = mapOf(
+        "Fruits" to "FRUITS", "Vegetables" to "VEGETABLES", "Meats" to "MEAT",
+        "Spices" to "SPICES", "Frozen Foods" to "FROZEN", "Fish" to "FISH"
+    )
+    val locationMapping = mapOf("Dagupan" to "DAGUPAN", "Calasiao" to "CALASIAO")
+
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(selectedLocation.value, selectedCategory.value) {
+        val currentLocation = selectedLocation.value ?: return@LaunchedEffect
+
+        if (selectedCategory.value == "STORE") {
+            isStoreLoading.value = true
+            storeErrorMessage.value = null
+            stores.clear()
+            filteredProducts.clear()
+            allProducts.clear()
+
+            val mappedLocation = locationMapping[currentLocation] ?: currentLocation.uppercase()
+            storeByOriginController.fetchStoresByOrigin(mappedLocation) { success, message, storeList ->
+                isStoreLoading.value = false
+                stores.clear()
+                filteredProducts.clear()
+                allProducts.clear()
+
+                if (success && storeList != null && storeList.isNotEmpty()) {
+                    stores.addAll(storeList)
+                } else {
+                    storeErrorMessage.value = "No stores available"
                 }
             }
         }
     }
+
+    // Fetch products when category or location changes
+    LaunchedEffect(selectedCategory.value, selectedLocation.value) {
+        val currentCategory = selectedCategory.value ?: return@LaunchedEffect
+        val currentLocation = selectedLocation.value ?: return@LaunchedEffect
+
+        if (currentCategory == "STORE") return@LaunchedEffect
+
+        isLoading.value = true
+        errorMessage.value = null
+        allProducts.clear()
+        filteredProducts.clear()
+        stores.clear()
+
+        val mappedCategory = categoryMapping[currentCategory] ?: currentCategory.uppercase()
+        val mappedLocation = locationMapping[currentLocation] ?: currentLocation.uppercase()
+
+        productByOriginController.fetchProductsByOrigin(mappedCategory, mappedLocation) { success, message, productList ->
+            isLoading.value = false
+            stores.clear()
+            filteredProducts.clear()
+            allProducts.clear()
+            if (success && productList != null) {
+                allProducts.addAll(productList)
+                filteredProducts.addAll(productList.filter { it.product_origin == mappedLocation })
+            } else {
+                errorMessage.value = message ?: "Failed to fetch products"
+            }
+        }
+    }
+
+    LazyColumn(
+        state = listState,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Top Section (Logo, Search Bar, Slider)
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(40.dp))
+                Image(
+                    painter = painterResource(id = R.drawable.baskit_logo),
+                    contentDescription = "Logo",
+                    modifier = Modifier.size(50.dp)
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = "Shop Smarter, Not Harder",
+                    fontFamily = poppinsFontFamily,
+                    fontSize = 12.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(15.dp))
+                SearchBar(navController)
+                Spacer(modifier = Modifier.height(30.dp))
+                SliderCard()
+                Spacer(modifier = Modifier.height(15.dp))
+            }
+        }
+
+        // Sticky Header - Location & Category Selection
+        stickyHeader {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+            ) {
+                LocationSelector(selectedLocation)
+
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(Color.Gray.copy(alpha = 0.5f), Color.Transparent)
+                                )
+                            )
+                    )
+                }
+
+                CategoryRow(selectedCategory, navController)
+                Spacer(modifier = Modifier.height(5.dp))
+            }
+        }
+
+        // Scrollable Content (Stores / Products)
+        when {
+            selectedCategory.value == "STORE" -> {
+                if (isStoreLoading.value) {
+                    item {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = Color(0xFFFFA52F))
+                        }
+                    }
+                } else if (!storeErrorMessage.value.isNullOrEmpty()) {
+                    item {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(text = storeErrorMessage.value ?: "Unknown error", color = Color.Red, fontSize = 16.sp)
+                        }
+                    }
+                } else if (stores.isEmpty()) {
+                    item {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(text = "No stores available", color = Color.Gray, fontSize = 16.sp)
+                        }
+                    }
+                } else {
+                    item {
+                        StoreGrid(stores, navController)
+                    }
+                }
+            }
+            isLoading.value -> {
+                item {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = Color(0xFFFFA52F))
+                    }
+                }
+            }
+            errorMessage.value != null -> {
+                item {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(text = errorMessage.value ?: "Unknown error", color = Color.Red, fontSize = 16.sp)
+                    }
+                }
+            }
+            filteredProducts.isEmpty() -> {
+                item {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(text = "No products available", color = Color.Gray, fontSize = 16.sp)
+                    }
+                }
+            }
+            else -> {
+                items(filteredProducts.chunked(2)) { rowProducts ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        rowProducts.forEach { product ->
+                            ProductItem(
+                                modifier = Modifier.weight(1f),
+                                product = product,
+                                navController = navController
+                            )
+                        }
+                        if (rowProducts.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+}
+
+@Composable
+fun StoreGrid(stores: List<StoreResponse>, navController: NavController) {
+
+    val sortedStores = stores.sortedWith(
+        compareByDescending<StoreResponse> { it.store_status == "Partner" }
+            .thenBy { it.id }
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        sortedStores.forEach { store ->
+            StoreItem(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                store = store,
+                navController = navController
+            )
+        }
+    }
+}
+
+@Composable
+fun StoreItem(modifier: Modifier = Modifier, store: StoreResponse, navController: NavController) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .clickable {
+                navController.navigate("ShopScreen/${store.store_name}/${store.id}")
+            },
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                AsyncImage(
+                    model = store.store_image,
+                    contentDescription = store.store_name,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                    contentScale = ContentScale.Crop
+                )
+
+                if (store.store_status == "Partner") {
+                    Box(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .background(Color(0xFFFFA726), shape = RoundedCornerShape(20.dp))
+                            .padding(horizontal = 12.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "Top Store",
+                            fontSize = 12.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = poppinsFontFamily
+                        )
+                    }
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = store.store_name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    fontFamily = poppinsFontFamily,
+                    modifier = Modifier.padding(top = 5.dp, end = 8.dp)
+                )
+
+                if (store.store_status == "Partner") {
+                    Box(
+                        modifier = Modifier
+                            .background(Color(0xFFFFA726), shape = RoundedCornerShape(20.dp))
+                            .padding(horizontal = 12.dp, vertical = 5.dp)
+                    ) {
+                        Text(
+                            text = "Recommended",
+                            fontSize = 12.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = poppinsFontFamily
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ProductItem(product: ProductsResponse, navController: NavController, modifier: Modifier = Modifier) {
+    val productJson = Gson().toJson(product)
+    val encodedProductName = URLEncoder.encode(product.product_name, StandardCharsets.UTF_8.toString())
+    val encodedProductJson = URLEncoder.encode(productJson, StandardCharsets.UTF_8.toString())
+
+    Card(
+        modifier = modifier
+            .height(180.dp)
+            .width(154.dp)
+            .padding(4.dp)
+            .clickable {
+                navController.navigate("ProductScreen/$encodedProductName/$encodedProductJson")
+            },
+        shape = RoundedCornerShape(10.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(product.product_image)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Product Image",
+                modifier = Modifier
+                    .height(100.dp)
+                    .width(136.dp)
+                    .padding(top = 8.dp)
+                    .clip(RoundedCornerShape(10.dp)),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                text = product.product_name,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = poppinsFontFamily,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            Text(
+                text = "₱${String.format("%.2f", product.product_price.toDoubleOrNull() ?: 0.0)}",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                fontFamily = poppinsFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(bottom = 5.dp)
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomeActivity() {
+    HomeScreen()
 }

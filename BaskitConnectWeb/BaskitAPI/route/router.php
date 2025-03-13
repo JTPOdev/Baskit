@@ -205,7 +205,6 @@ $router->post('/store/decline/{id}', function($id) use ($conn) {
 
 // GET ALL STORES. APPROVED STORES
 $router->get('/store/all', function() use ($conn) {
-    $adminId = AuthMiddleware::checkAuth();
     echo json_encode(StoreController::list($conn));
 });
 
@@ -242,8 +241,9 @@ $router->post('/product/create', function() use ($conn) {
 }, true, false);
     
 $router->get('/product/list', function() use ($conn) {
+    AuthMiddleware::checkAuth(true);
     echo json_encode(ProductController::list($conn));
-}, true, false);
+}, true, true);
 
 $router->get('/product/specific/{id}', function($id) use ($conn) {
     echo json_encode(ProductController::getSpecificProductByid($id, $conn));
@@ -263,6 +263,11 @@ $router->delete('/product/delete/{id}', function($id) use ($conn) {
 $router->get('/store/products', function() use ($conn) {
     ProductController::getAllProductsByStore($conn);
 });
+
+$router->get('/products', function() use ($conn) {
+    $authUserId = AuthMiddleware::checkAuth();
+    ProductController::getAllProducts($conn);
+}, true, false);
 
 
 // ---------- PRODUCT CATEGORIES ---------- //
@@ -307,9 +312,9 @@ $router->post('/cart/add', function() use ($conn) {
     echo json_encode(CartController::addToCart($authUserId, $data, $conn));
 }, false, true);
 
-$router->get('/cart/view/{user_id}', function() use ($conn) {
+$router->get('/cart/view', function() use ($conn) {
     $authUserId = AuthMiddleware::checkAuth();
-    echo json_encode(CartController::viewCart($authUserId,$conn));
+    echo json_encode(CartController::viewCart($authUserId, $conn));
 }, false, true);
 
 $router->put('/cart/update', function() use ($conn) {

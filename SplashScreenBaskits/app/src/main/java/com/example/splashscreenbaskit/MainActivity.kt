@@ -1,11 +1,13 @@
 package com.example.splashscreenbaskit
 
 import EditStoreScreen
+import ProductsResponse
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.remember
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -39,6 +41,8 @@ import com.example.splashscreenbaskit.Tagabili.CalasiaoOrders
 import com.example.splashscreenbaskit.Tagabili.DagupanOrders
 import com.example.splashscreenbaskit.Tagabili.TB_HomeContent
 import com.example.splashscreenbaskit.Tagabili.TB_OrdersContent
+import com.example.splashscreenbaskit.api.ApiService
+import com.example.splashscreenbaskit.controller.CartController
 //import com.example.splashscreenbaskit.Products.AppleScreen
 //import com.example.splashscreenbaskit.Products.BananaScreen
 //import com.example.splashscreenbaskit.Products.GrapesScreen
@@ -47,6 +51,7 @@ import com.example.splashscreenbaskit.Tagabili.TB_OrdersContent
 //import com.example.splashscreenbaskit.Products.PineappleScreen
 import com.example.splashscreenbaskit.ui.theme.SplashScreenBaskitTheme
 import com.example.splashscreenbaskit.viewmodel.CartViewModel
+import com.google.gson.Gson
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("NewApi", "ComposableDestinationInComposeScope")
@@ -82,15 +87,29 @@ class MainActivity : ComponentActivity() {
 //                        AddProduct(navController)
 //                    }
                     composable(
-                        "ProductScreen/{productName}",
-                        arguments = listOf(navArgument("productName") { type = NavType.StringType })
+                        "ProductScreen/{productName}/{productResponse}",
+                        arguments = listOf(
+                            navArgument("productName") { type = NavType.StringType },
+                            navArgument("productResponse") { type = NavType.StringType }
+                        )
                     ) { backStackEntry ->
+
+                        val apiService = RetrofitInstance.create(ApiService::class.java)
+                        val cartController = remember { CartController(apiService) }
+
+                        val productName = backStackEntry.arguments?.getString("productName") ?: ""
+                        val productJson = backStackEntry.arguments?.getString("productResponse") ?: ""
+                        val productResponse = Gson().fromJson(productJson, ProductsResponse::class.java)
+
                         ProductScreen(
                             navController = navController,
-                            cartViewModel = cartViewModel,
-                            productName = backStackEntry.arguments?.getString("productName")
+                            cartController = cartController,
+                            productName = productName,
+                            productsResponse = productResponse
                         )
                     }
+
+
 //                    composable("AppleScreen") {
 //                        // Pass CartViewModel to AppleScreen
 //                        AppleScreen(navController = navController, cartViewModel = cartViewModel)

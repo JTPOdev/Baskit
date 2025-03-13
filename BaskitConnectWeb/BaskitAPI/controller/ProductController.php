@@ -105,6 +105,22 @@ class ProductController
         return ['message' => 'Failed to delete product'];
     }
 
+    public static function getAllProducts($conn)
+    {
+        header('Content-Type: application/json');
+    
+        $products = Product::getAllProducts($conn);
+    
+        if ($products) {
+            http_response_code(200);
+            echo json_encode($products);
+        } else {
+            http_response_code(404);
+            echo json_encode(['message' => "No products found"]);
+        }
+    }
+
+
     // --------- GET ALL PRODUCTS BY STORE USING TOKEN -------- //
     public static function getAllProductsByStore($conn)
     {
@@ -160,9 +176,10 @@ class ProductController
         $targetPath = $uploadDir . $filename;
 
         return move_uploaded_file($file['tmp_name'], $targetPath) ?
-            ['success' => "/uploads/$folder/" . $filename] :
+            ['success' => "http://".$_SERVER['HTTP_HOST']."/uploads/$folder/" . $filename] :
             ['error' => 'Failed to upload file'];
     }
+    
     
 
     //--------- GET ALL PRODUCTS FROM STORE BY CATEGORY---------// 

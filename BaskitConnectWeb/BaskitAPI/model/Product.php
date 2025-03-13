@@ -77,17 +77,27 @@ class Product
     }
 
     public static function deleteProduct($conn, $productId)
-{
-    $sql = "DELETE FROM products WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $productId);
-    
-    if ($stmt->execute()) {
-        return true;
-    } else {
-        return false;
+    {
+        $sql = "DELETE FROM products WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $productId);
+        
+        if ($stmt->execute()) {
+            return true;
+        } else {
+            return false;
+        }
     }
-}
+
+    public static function getAllProducts($conn)
+    {
+        $sql = "SELECT * FROM products";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
     
     //--------- FETCH ALL PRODUCTS FROM STORE BY CATEGORY---------// 
     public static function fetchByCategoryFruit($conn, $storeId)

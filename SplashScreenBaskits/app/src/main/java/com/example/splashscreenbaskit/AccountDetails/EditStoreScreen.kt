@@ -1,13 +1,22 @@
+import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -24,14 +34,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.splashscreenbaskit.R
+import com.example.splashscreenbaskit.api.ApiService
 import com.example.splashscreenbaskit.controller.UserStoreController
 import com.example.splashscreenbaskit.controllers.ProductController
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
@@ -46,10 +64,11 @@ fun EditStoreScreen(navController: NavController) {
     val products = remember { mutableStateListOf<ProductsResponse>() }
     val isLoading = remember { mutableStateOf(true) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
-    val selectedCategory = remember { mutableStateOf("All") }
+    val selectedCategory = remember { mutableStateOf("Fruits") }
 
     val context = LocalContext.current
-    val userStoreController = UserStoreController(LocalLifecycleOwner.current, context)
+    val apiService = remember { RetrofitInstance.create(ApiService::class.java) }
+    val userStoreController = UserStoreController(LocalLifecycleOwner.current, context, apiService)
     val productController = ProductController(LocalLifecycleOwner.current, context)
 
     LaunchedEffect(Unit) {
@@ -74,46 +93,134 @@ fun EditStoreScreen(navController: NavController) {
     }
 
     Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
-        TopBar(navController)
-        StoreHeader(storeName, storeImage)
+        //TopBar(navController)
+        StoreHeader(storeName, storeImage, navController, apiService)
         ProductList(products, selectedCategory, isLoading, errorMessage, navController)
     }
 }
 
 @Composable
-fun TopBar(navController: NavController) {
-    IconButton(onClick = { navController.popBackStack() }, modifier = Modifier.padding(16.dp)) {
-        Icon(
-            painter = painterResource(id = R.drawable.back),
-            contentDescription = "Back",
-            tint = Color.Black
-        )
-    }
-}
+fun StoreHeader(
+    storeName: String,
+    storeImage: String,
+    navController: NavController,
+    apiService: ApiService
+) {
+    val context = LocalContext.current
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var showMenu by remember { mutableStateOf(false) }
+    var isUploading by remember { mutableStateOf(false) }
 
-@Composable
-fun StoreHeader(storeName: String, storeImage: String) {
-    Box(modifier = Modifier.fillMaxWidth().height(250.dp)) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val userStoreController = remember { UserStoreController(lifecycleOwner, context, apiService) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            selectedImageUri = it
+            isUploading = true // Show loading indicator
+
+            userStoreController.uploadStoreImage(it) { success, message ->
+                isUploading = false // Hide loading indicator
+
+                if (success) {
+                    Toast.makeText(context, "Image uploaded successfully!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(315.dp)
+    ) {
+        // Back Button
+        IconButton(
+            onClick = { navController.popBackStack() },
+            modifier = Modifier
+                .zIndex(1f)
+                .padding(top = 70.dp, start = 40.dp)
+                .align(Alignment.TopStart)
+                .size(40.dp)
+                .background(Color(0xAAFFFFFF), shape = CircleShape)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.back),
+                contentDescription = "Back",
+                tint = Color.Black,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
+        // Store Image Display (With Fallback)
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(storeImage.trim())
-                .crossfade(true)
-                .build(),
+            model = selectedImageUri ?: if (storeImage.isNotBlank()) storeImage.trim() else R.drawable.vendor1,
             contentDescription = "Store Image",
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
+
+        // Loading Indicator
+        if (isUploading) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = Color.White
+            )
+        }
+
+        // Three-Dot Menu (Top-Right)
         Box(
-            modifier = Modifier.fillMaxWidth().height(100.dp).align(Alignment.BottomStart)
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 70.dp, end = 40.dp)
+        ) {
+            IconButton(onClick = { showMenu = true }) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Menu",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false },
+                modifier = Modifier.background(Color.White)
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Edit Image") },
+                    onClick = {
+                        showMenu = false
+                        imagePickerLauncher.launch("image/*")
+                    }
+                )
+            }
+        }
+
+        // Gradient Overlay
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp)
+                .align(Alignment.BottomStart)
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f))
                     )
                 )
         )
+
+        // Store Name
         Text(
             text = storeName,
-            modifier = Modifier.padding(start = 20.dp, bottom = 10.dp).align(Alignment.BottomStart),
+            modifier = Modifier
+                .padding(start = 20.dp, bottom = 10.dp)
+                .align(Alignment.BottomStart),
             color = Color.White,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
@@ -130,8 +237,8 @@ fun ProductList(
     errorMessage: MutableState<String?>,
     navController: NavController
 ) {
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        val categories = listOf("All", "Fruits", "Vegetables", "Meats", "Spices", "Frozen Foods", "Fish")
+    Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
+        val categories = listOf("Fruits", "Vegetables", "Meats", "Spices", "Frozen Foods", "Fish")
 
         LazyRow(modifier = Modifier.fillMaxWidth()) {
             items(categories) { category ->
@@ -139,11 +246,14 @@ fun ProductList(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(15.dp))
 
         when {
             isLoading.value -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier.fillMaxSize() .padding(horizontal = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
                     CircularProgressIndicator(color = Color(0xFFFFA52F))
                 }
             }
@@ -153,27 +263,25 @@ fun ProductList(
                 }
             }
             else -> {
-                val filteredProducts = if (selectedCategory.value == "All") {
-                    products
-                } else {
-                    val categoryMap = mapOf(
-                        "Fruits" to "FRUITS",
-                        "Vegetables" to "VEGETABLES",
-                        "Meats" to "MEAT",
-                        "Fish" to "FISH",
-                        "Spices" to "SPICES",
-                        "Frozen Foods" to "FROZEN"
-                    )
-                    products.filter { it.product_category == categoryMap[selectedCategory.value] }
-                }
+                val categoryMap = mapOf(
+                    "Fruits" to "FRUITS",
+                    "Vegetables" to "VEGETABLES",
+                    "Meats" to "MEAT",
+                    "Fish" to "FISH",
+                    "Spices" to "SPICES",
+                    "Frozen Foods" to "FROZEN"
+                )
+                val filteredProducts = products.filter { it.product_category == categoryMap[selectedCategory.value] }
 
                 // Add "Add a product" button to the product list
                 val productListWithAdd = remember(filteredProducts) {
                     filteredProducts.toMutableList().apply {
-                        add(ProductsResponse("Add a product", "", "", null)) // Use null for nullable fields
+                        add(ProductsResponse(
+                            0,"Add a product", "", "",
+                            "", null,"",
+                            "", ""))
                     }
                 }
-
 
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     items(productListWithAdd.chunked(2)) { rowProducts ->
@@ -194,7 +302,6 @@ fun ProductList(
                                         navController = navController
                                     )
                                 }
-
                             }
                             if (rowProducts.size == 1) {
                                 Spacer(modifier = Modifier.weight(1f))
@@ -209,6 +316,7 @@ fun ProductList(
 
 
 
+
 @Composable
 fun FilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Button(
@@ -219,7 +327,11 @@ fun FilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
         ),
         modifier = Modifier.padding(horizontal = 4.dp)
     ) {
-        Text(text = text, fontSize = 14.sp)
+        Text(text = text,
+            fontSize = 16.sp,
+            fontFamily = poppinsFontFamily,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 
@@ -227,16 +339,25 @@ fun FilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
 fun ProductItem(product: ProductsResponse, navController: NavController, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier
-            .height(200.dp)
-            .clip(RoundedCornerShape(10.dp))
+            //.weight(1f)
+            .height(180.dp)
+            .width(154.dp)
+            .padding(5.dp)
+            //.clip(RoundedCornerShape(10.dp))
             .clickable {
                 navController.navigate("ProductScreen/${product.product_name}")
             },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        shape = RoundedCornerShape(10.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp,
+            //pressedElevation = 8.dp
+        ),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0))
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 5.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -247,8 +368,9 @@ fun ProductItem(product: ProductsResponse, navController: NavController, modifie
                     .build(),
                 contentDescription = "Product Image",
                 modifier = Modifier
-                    .height(120.dp)
-                    .fillMaxWidth()
+                    .height(100.dp)
+                    .width(140.dp)
+                    .padding(top = 8.dp)
                     .clip(RoundedCornerShape(10.dp)),
                 contentScale = ContentScale.Crop
             )
@@ -256,12 +378,16 @@ fun ProductItem(product: ProductsResponse, navController: NavController, modifie
             Text(
                 text = product.product_name,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontFamily = poppinsFontFamily,
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
             Text(
                 text = "₱${String.format("%.2f", product.product_price.toDoubleOrNull() ?: 0.0)}",
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = Color.Black,
+                fontFamily = poppinsFontFamily,
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
         }
     }
@@ -272,8 +398,11 @@ fun AddProductButton(navController: NavController, modifier: Modifier = Modifier
     Button(
         onClick = { navController.navigate("AddProductTest") },
         modifier = modifier
-            .height(200.dp)
-            .clip(RoundedCornerShape(10.dp)),
+            //.weight(1f)
+            .height(180.dp)
+            .width(154.dp)
+            .padding(5.dp),
+        //.clip(RoundedCornerShape(10.dp)),
         shape = RoundedCornerShape(10.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color(0xFFF0F0F0),
@@ -297,12 +426,11 @@ fun AddProductButton(navController: NavController, modifier: Modifier = Modifier
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Add a product",
-                fontSize = 16.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.Black
+                color = Color.Black,
+                fontFamily = poppinsFontFamily
             )
         }
     }
 }
-
-

@@ -331,5 +331,22 @@ class UserController
             exit;
         }
     }
-}   
+
+    public static function getVerifiedTagabili($conn)
+    {
+        $users = User::getVerifiedTagabiliUsers($conn);
+
+        if (empty($users)) {
+            header('HTTP/1.1 404 Not Found');
+            header('Content-Type: application/json');
+            echo json_encode(['message' => 'No verified Tagabili users found.']);
+            exit;
+        }
+
+        header('HTTP/1.1 200 OK');
+        header('Content-Type: application/json');
+        echo json_encode(['message' => 'Verified Tagabili users retrieved successfully.', 'users' => $users]);
+        exit;
+    }
+}       
 ?>  

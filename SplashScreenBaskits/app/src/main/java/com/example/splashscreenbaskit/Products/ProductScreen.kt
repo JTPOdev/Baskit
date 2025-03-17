@@ -125,7 +125,7 @@ fun ProductScreen(
                 .padding(horizontal = 20.dp)
         ) {
             Text(
-                text = product.product_name,
+                text = product.product_name.replace("+", " "),
                 fontSize = 32.sp,
                 fontFamily = poppinsFontFamily,
                 fontWeight = FontWeight.Bold
@@ -295,13 +295,17 @@ fun ProductScreen(
                     if (selectedWeight.isNotEmpty()) {
                         cartController.addToCart(
                             productId = product.id,
+                            productName = product.product_name,
+                            productPrice = product.product_price.toDoubleOrNull() ?: 0.0,
                             productQuantity = quantity,
                             productPortion = selectedWeight,
+                            productOrigin = product.product_origin,
+                            storeId = product.store_id,
+                            storeName = product.store_name,
                             productImageUrl = product.product_image ?: ""
                         ) { response ->
                             if (response.success) {
-                                Toast.makeText(context, "Failed to add to Basket!", Toast.LENGTH_SHORT)
-                                    .show()
+                                Toast.makeText(context, "Failed to add to Basket!", Toast.LENGTH_SHORT).show()
                             } else {
                                 showDialog.value = true
                             }

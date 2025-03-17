@@ -44,12 +44,15 @@ import com.example.splashscreenbaskit.api.ApiService
 import com.example.splashscreenbaskit.controller.UserStoreController
 import com.example.splashscreenbaskit.controllers.ProductController
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
+import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
@@ -72,7 +75,7 @@ fun EditStoreScreen(navController: NavController) {
     val productController = ProductController(LocalLifecycleOwner.current, context)
 
     LaunchedEffect(Unit) {
-        userStoreController.fetchStoreDetails { success, errorMessage, store ->
+        userStoreController.fetchMyStoreDetails { success, errorMessage, store ->
             if (success && store != null) {
                 storeName = store.store_name
                 storeImage = store.store_image ?: "default_image"
@@ -278,8 +281,8 @@ fun ProductList(
                     filteredProducts.toMutableList().apply {
                         add(ProductsResponse(
                             0,"Add a product", "", "",
-                            "", null,"",
-                            "", ""))
+                            "", null,0,
+                            "", "", ""))
                     }
                 }
 
@@ -337,6 +340,10 @@ fun FilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
 
 @Composable
 fun ProductItem(product: ProductsResponse, navController: NavController, modifier: Modifier = Modifier) {
+    val productJson = Gson().toJson(product)
+    val encodedProductName = URLEncoder.encode(product.product_name, StandardCharsets.UTF_8.toString())
+    val encodedProductJson = URLEncoder.encode(productJson, StandardCharsets.UTF_8.toString())
+
     Card(
         modifier = modifier
             //.weight(1f)
@@ -345,7 +352,7 @@ fun ProductItem(product: ProductsResponse, navController: NavController, modifie
             .padding(5.dp)
             //.clip(RoundedCornerShape(10.dp))
             .clickable {
-                navController.navigate("ProductScreen/${product.product_name}")
+                navController.navigate("ProductScreen/$encodedProductName/$encodedProductJson")
             },
         shape = RoundedCornerShape(10.dp),
         elevation = CardDefaults.cardElevation(

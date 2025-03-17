@@ -83,12 +83,16 @@ data class CartResponse(
     val success: Boolean,
     val message: String
 )
-
 data class CartItem(
     val product_id: Int,
+    val product_name: String,
+    val product_price: Double,
     val product_quantity: Int,
-    val product_portion: String,
-    val product_image_url: String
+    val product_portion: String?,
+    val product_origin: String?,
+    val store_id: Int,
+    val store_name: String,
+    val product_image: String?
 )
 
 data class StoreRequestResponse(
@@ -113,6 +117,7 @@ data class ProductsResponse(
     val product_category: String,
     val product_origin: String,
     val product_image: String?,
+    val store_id: Int,
     val store_name: String,
     val store_phone_number: String,
     val store_address: String,

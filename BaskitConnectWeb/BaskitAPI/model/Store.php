@@ -205,5 +205,26 @@ class Store
         $stmt->bind_param("si", $storeImage, $storeId);
         return $stmt->execute();
     }
+
+    public static function getAllApprovedRequest($conn)
+    {
+        $sql = "SELECT sr.*, 
+                    u.username, 
+                    u.firstname, 
+                    u.lastname, 
+                    u.mobile_number, 
+                    u.email AS email
+                FROM stores sr
+                JOIN users u ON sr.user_id = u.id";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            return [];
+        }
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
 }
 ?>

@@ -166,5 +166,20 @@ class User
         }
 
     }
+
+    public static function getVerifiedTagabiliUsers($conn)
+    {
+        $sql = "SELECT id, username, email, mobile_number, firstname, lastname FROM users WHERE role = 'tagabili' AND is_verified = 'Verified'";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $users = [];
+        while ($row = $result->fetch_assoc()) {
+            $users[] = $row;
+        }
+
+        return $users;
+    }
 }
 ?>

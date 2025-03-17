@@ -4,11 +4,13 @@ require_once __DIR__ . '/../controller/StoreController.php';
 require_once __DIR__ . '/../controller/ProductController.php';
 require_once __DIR__ . '/../controller/CartController.php';
 require_once __DIR__ . '/../controller/AdminController.php';
+require_once __DIR__ . '/../controller/OrderController.php';
 require_once __DIR__ . '/../model/User.php';
 require_once __DIR__ . '/../model/Admin.php';
 require_once __DIR__ . '/../model/Store.php';
 require_once __DIR__ . '/../model/Product.php';
 require_once __DIR__ . '/../model/Cart.php';
+require_once __DIR__ . '/../model/Order.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 
@@ -137,7 +139,10 @@ $router->get('/user/details', function() use ($conn) {
     echo json_encode(User::getUserDetails($conn, $userId));
 }, true, false);
 
-
+$router->get('/user/tagabili', function() use ($conn) {
+    header('Content-Type: application/json'); 
+    echo json_encode(UserController::getVerifiedTagabili($conn));
+});
 
  
 
@@ -183,6 +188,11 @@ $router->post('/store/create', function() use ($conn) {
 $router->get('/store/request/all', function() use ($conn) {
     header('Content-Type: application/json');
     echo json_encode(Store::getAllStoreRequests($conn));
+});
+
+$router->get('/store/approve/request/all', function() use ($conn) {
+    header('Content-Type: application/json');
+    echo json_encode(Store::getAllApprovedRequest($conn));
 });
 
 // GET STORE REQUESTS BY ID
@@ -328,6 +338,49 @@ $router->delete('/cart/remove', function() use ($conn) {
     $data = json_decode(file_get_contents("php://input"), true);
     echo json_encode(CartController::removeFromCart($authUserId, $data, $conn));
 },false, true);
+
+
+// ---------- ORDERS --------- //
+$router->post('/order/place', function() use ($conn) {
+    $userId = AuthMiddleware::checkAuth();
+
+    if (!$userId) {
+        header('HTTP/1.1 401 Unauthorized');
+        echo json_encode(['message' => 'Unauthorized']);
+        exit;
+    }
+    echo json_encode(OrderController::placeOrder($userId, $conn));
+}, false, true);
+
+$router->post('/order/accept', function() use ($conn) {
+    $tagabiliId = AuthMiddleware::checkAuth();
+
+    if (!$tagabiliId) {
+        header('HTTP/1.1 401 Unauthorized');
+        echo json_encode(['message' => 'Unauthorized']);
+        exit;
+    }
+    $data = json_decode(file_get_contents("php://input"), true);
+    
+    if (!isset($data['order_code'])) {
+        header('HTTP/1.1 400 Bad Request');
+        echo json_encode(['message' => 'Missing order_code']);
+        exit;
+    }
+    echo json_encode(OrderController::acceptAllOrders($tagabiliId, $data['order_code'], $conn));
+}, false, true);
+
+$router->post('/order/complete', function() use ($conn) {
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    if (!isset($data['order_code'])) {
+        header('HTTP/1.1 400 Bad Request');
+        echo json_encode(['message' => 'Missing order_code']);
+        exit;
+    }
+
+    echo json_encode(Order::completeOrderByCode($data['order_code'], $conn));
+}, false, true);
 
 
 // ---------- 404 NOT FOUND ---------- //

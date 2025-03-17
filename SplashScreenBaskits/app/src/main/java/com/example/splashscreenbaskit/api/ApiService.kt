@@ -62,6 +62,9 @@ interface ApiService {
     @GET("store/all")
     suspend fun getStoreDetails(@Header("Authorization") authorization: String): Response<List<StoreResponse>>
 
+    @GET("store/mystore")
+    suspend fun getMyStoreDetails(@Header("Authorization") authorization: String): Response<StoreResponse>
+
     @GET("store/products")
     suspend fun getProductDetails(@Header("Authorization") authorization: String): Response<List<ProductsResponse>>
 
@@ -95,7 +98,8 @@ interface ApiService {
     @POST("/cart/add")
     fun addToCart(@Body cartItem: CartItem): Call<CartResponse>
 
-
+    @GET("cart/view")
+    suspend fun getCartItems(@Header("Authorization") authToken: String): Response<List<CartItem>>
 }
 
 

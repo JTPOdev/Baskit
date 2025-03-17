@@ -104,4 +104,53 @@ class UserStoreController(private val lifecycleOwner: LifecycleOwner, private va
             }
         }
     }
+
+    fun fetchMyStoreDetails(onResult: (Boolean, String?, StoreResponse?) -> Unit) {
+        lifecycleOwner.lifecycleScope.launch {
+            val accessToken = TokenManager.getToken()
+
+            if (accessToken.isNullOrEmpty()) {
+                onResult(false, "No access token found", null)
+                return@launch
+            }
+
+            try {
+                val response = apiService.getMyStoreDetails("Bearer $accessToken")
+
+                if (response.isSuccessful) {
+                    val storeResponse = response.body()
+                    if (storeResponse != null) {
+                        saveMyStoreLocally(storeResponse)
+                        onResult(true, null, storeResponse)
+                    } else {
+                        Log.e("UserStoreController", "Store data is empty")
+                        onResult(false, "No store details found", null)
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("UserStoreController", "API Error: $errorBody")
+                    onResult(false, "Failed to fetch store details", null)
+                }
+            } catch (e: HttpException) {
+                Log.e("UserStoreController", "HTTP Error: ${e.message}")
+                onResult(false, "Server error: ${e.message}", null)
+            } catch (e: Exception) {
+                Log.e("UserStoreController", "Exception: ${e.localizedMessage}")
+                onResult(false, "Unexpected error: ${e.localizedMessage}", null)
+            }
+        }
+    }
+
+    private fun saveMyStoreLocally(store: StoreResponse) {
+        context.getSharedPreferences("MyStorePrefs", Context.MODE_PRIVATE).edit().apply {
+            putString("store_name", store.store_name)
+            putString("store_address", store.store_address)
+            putString("store_phone_number", store.store_phone_number)
+            putString("store_origin", store.store_origin)
+            putString("store_status", store.store_status)
+            putString("store_rating", store.store_rating)
+            putString("store_image", store.store_image ?: "")
+            apply()
+        }
+    }
 }

@@ -48,10 +48,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     "Accept": "application/json"
                 }
             });
-
+    
             if (!response.ok) throw new Error("Failed to fetch users");
-
+    
             users = await response.json();
+    
+            users = users.filter(user => {
+                let status = user.request_status ? user.request_status.trim().toLowerCase() : "";
+                return status === "pending";
+            });
+    
             renderUsers(users);
         } catch (error) {
             console.error("Error fetching users:", error);
@@ -127,11 +133,11 @@ document.addEventListener("DOMContentLoaded", function () {
                         <div class="documents">
                             <div class="document">
                                 <p>Valid ID</p>
-                                <img src="${BASE_URL}${user.valid_id}" alt="Valid ID" class="clickable-image">
+                                <img src="${user.valid_id}" alt="Valid ID" class="clickable-image">
                             </div>
                             <div class="document">
                                 <p>Certificate</p>
-                                <img src="${BASE_URL}${user.certificate_of_registration}" alt="Certificate" class="clickable-image">
+                                <img src="${user.certificate_of_registration}" alt="Certificate" class="clickable-image">
                             </div>
                         </div>
                     </div>
@@ -149,7 +155,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function handleAction(userId, action) {
         const endpoint = action === "approve" ? "store/approve" : "store/decline";
         const button = document.querySelector(`[data-user-id="${userId}"][data-action="${action}"]`);
-        
+    
         button.innerHTML = "⏳ Processing...";
         button.disabled = true;
     
@@ -163,6 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.json())
         .then(data => {
             alert(`User ID ${userId} has been ${action}d.`);
+    
             users = users.filter(user => user.id !== userId);
             renderUsers(users);
         })

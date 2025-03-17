@@ -36,7 +36,7 @@ class Admin
     // --------- GET ADMIN BY USERNAME -------- //
     public static function getAdminByUsername($conn, $username)
     {
-        $sql = "SELECT * FROM admins WHERE username = ?";
+        $sql = "SELECT * FROM admins WHERE LOWER(username) = LOWER(?) LIMIT 1";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("s", $username);
         $stmt->execute();

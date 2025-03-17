@@ -167,7 +167,7 @@ fun ProductItem(product: ProductsResponse, navController: NavController, modifie
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "₱${String.format("%.2f", product.product_price.toDoubleOrNull() ?: 0.0)}",
+                text = "₱${String.format("%.2f", product.product_price)}",
                 fontSize = 14.sp,
                 color = Color.Gray
             )

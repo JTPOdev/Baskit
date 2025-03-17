@@ -41,29 +41,29 @@ class AdminController
             http_response_code(400);
             return ['message' => 'Username and password are required'];
         }
-
-        $username = $data['username'];
+    
+        $username = strtolower($data['username']);
         $password = $data['password'];
-
+    
         $admin = Admin::getAdminByUsername($conn, $username);
-
+    
         if (!$admin) {
             http_response_code(401);
             return ['message' => 'Invalid credentials'];
         }
-
+    
         if (!password_verify($password, $admin['password'])) {
             http_response_code(401);
             return ['message' => 'Invalid credentials'];
         }
-
+    
         $accessToken = bin2hex(random_bytes(32));
-
+    
         if (!Admin::storeAccessToken($conn, $admin['id'], $accessToken)) {
             http_response_code(500);
             return ['message' => 'Login failed. Please try again later.'];
         }
-
+    
         http_response_code(200);
         return [
             'message' => 'Login successful',

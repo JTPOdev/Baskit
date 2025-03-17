@@ -8,8 +8,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,14 +18,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.splashscreenbaskit.AccountDetails.AccountActivity
 import com.example.splashscreenbaskit.AccountDetails.AddProductTest
-//import com.example.splashscreenbaskit.AccountDetails.AddProduct
-//import com.example.splashscreenbaskit.AccountDetails.EditStore
 import com.example.splashscreenbaskit.AccountDetails.NotificationsActivity
 import com.example.splashscreenbaskit.AccountDetails.ProductDisplayScreen
 import com.example.splashscreenbaskit.AccountDetails.RequestSentScreen
 import com.example.splashscreenbaskit.AccountDetails.RulesScreen
 import com.example.splashscreenbaskit.AccountDetails.SettingsActivity
-//import com.example.splashscreenbaskit.AccountDetails.StoreEdit
 import com.example.splashscreenbaskit.AccountDetails.StoreRequestScreen
 import com.example.splashscreenbaskit.Carts.CartScreen
 import com.example.splashscreenbaskit.Carts.CheckoutScreen
@@ -37,20 +35,11 @@ import com.example.splashscreenbaskit.LoginSignup.OnboardingScreen
 import com.example.splashscreenbaskit.LoginSignup.ResetPasswordScreen
 import com.example.splashscreenbaskit.LoginSignup.SignUpActivity
 import com.example.splashscreenbaskit.Products.ProductScreen
-import com.example.splashscreenbaskit.Tagabili.CalasiaoOrders
-import com.example.splashscreenbaskit.Tagabili.DagupanOrders
 import com.example.splashscreenbaskit.Tagabili.TB_HomeContent
 import com.example.splashscreenbaskit.Tagabili.TB_OrdersContent
 import com.example.splashscreenbaskit.api.ApiService
 import com.example.splashscreenbaskit.controller.CartController
-//import com.example.splashscreenbaskit.Products.AppleScreen
-//import com.example.splashscreenbaskit.Products.BananaScreen
-//import com.example.splashscreenbaskit.Products.GrapesScreen
-//import com.example.splashscreenbaskit.Products.MangoScreen
-//import com.example.splashscreenbaskit.Products.OrangeScreen
-//import com.example.splashscreenbaskit.Products.PineappleScreen
 import com.example.splashscreenbaskit.ui.theme.SplashScreenBaskitTheme
-import com.example.splashscreenbaskit.viewmodel.CartViewModel
 import com.google.gson.Gson
 
 class MainActivity : ComponentActivity() {
@@ -65,7 +54,6 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
 
                 // Initialize CartViewModel here
-                var cartViewModel: CartViewModel = viewModel()
 
                 NavHost(navController = navController, startDestination = "OnBoardingScreen") {
                     composable("OnBoardingScreen") {
@@ -83,9 +71,6 @@ class MainActivity : ComponentActivity() {
                     composable("HomeActivity") {
                         HomeScreen()
                     }
-//                    composable("AddProduct") {
-//                        AddProduct(navController)
-//                    }
                     composable(
                         "ProductScreen/{productName}/{productResponse}",
                         arguments = listOf(
@@ -95,7 +80,9 @@ class MainActivity : ComponentActivity() {
                     ) { backStackEntry ->
 
                         val apiService = RetrofitInstance.create(ApiService::class.java)
-                        val cartController = remember { CartController(apiService) }
+                        val context = LocalContext.current
+                        val lifecycleOwner = LocalLifecycleOwner.current
+                        val cartController = remember { CartController(lifecycleOwner, context, apiService) }
 
                         val productName = backStackEntry.arguments?.getString("productName") ?: ""
                         val productJson = backStackEntry.arguments?.getString("productResponse") ?: ""
@@ -108,32 +95,14 @@ class MainActivity : ComponentActivity() {
                             productsResponse = productResponse
                         )
                     }
-
-
-//                    composable("AppleScreen") {
-//                        // Pass CartViewModel to AppleScreen
-//                        AppleScreen(navController = navController, cartViewModel = cartViewModel)
-//                    }
-//                    composable("OrangeScreen") {
-//                        OrangeScreen(navController = navController, cartViewModel = cartViewModel)
-//                    }
-//                    composable("BananaScreen") {
-//                        BananaScreen(navController = navController, cartViewModel = cartViewModel)
-//                    }
-//                    composable("MangoScreen") {
-//                        MangoScreen(navController = navController, cartViewModel = cartViewModel)
-//                    }
-//                    composable("GrapesScreen") {
-//                        GrapesScreen(navController = navController, cartViewModel = cartViewModel)
-//                    }
-//                    composable("PineappleScreen") {
-//                        PineappleScreen(navController = navController, cartViewModel = cartViewModel)
-//                    }
                     composable("CartScreen") {
-                        CartScreen(cartViewModel = cartViewModel, navController = navController)
-                    }
-                    composable("CheckoutScreen") {
-                        CheckoutScreen(cartViewModel = cartViewModel, navController = navController)
+                        val context = LocalContext.current
+                        val lifecycleOwner = LocalLifecycleOwner.current
+                        val apiService = RetrofitInstance.create(ApiService::class.java)
+
+                        val cartController = remember { CartController(lifecycleOwner, context, apiService) }
+
+                        CartScreen(cartController = cartController, navController = navController)
                     }
                     composable("NotificationsActivity") {
                         NotificationsActivity(navController)
@@ -159,12 +128,6 @@ class MainActivity : ComponentActivity() {
                     composable("StoreRequestScreen") {
                         StoreRequestScreen(navController)
                     }
-//                    composable("StoreEdit") {
-//                        StoreEdit(navController = navController)
-//                    }
-//                    composable("EditStore") {
-//                        EditStore(navController)
-//                    }
                     composable("RulesScreen") {
                         RulesScreen(navController)
                     }
@@ -177,17 +140,19 @@ class MainActivity : ComponentActivity() {
                     composable("TB_OrdersActivity") {
                         TB_OrdersContent(navController)
                     }
-                    composable("DagupanOrders") {
-                        DagupanOrders(navController)
-                    }
-                    composable("CalasiaoOrders") {
-                        CalasiaoOrders(navController)
-                    }
                     composable("ProductDisplayScreen") {
                         ProductDisplayScreen(navController)
                     }
                     composable("EditStoreScreen") {
                         EditStoreScreen(navController)
+                    }
+                    composable("CheckoutScreen") {
+                        val context = LocalContext.current
+                        val lifecycleOwner = LocalLifecycleOwner.current
+                        val apiService = RetrofitInstance.create(ApiService::class.java)
+
+                        val cartController = remember { CartController(lifecycleOwner, context, apiService) }
+                        CheckoutScreen(cartController = cartController, navController = navController)
                     }
                 }
             }

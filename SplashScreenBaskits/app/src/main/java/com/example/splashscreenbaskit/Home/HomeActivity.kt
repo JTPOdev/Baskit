@@ -75,7 +75,6 @@ import com.example.splashscreenbaskit.controllers.ProductByOriginController
 import com.example.splashscreenbaskit.controllers.ProductController
 import com.example.splashscreenbaskit.controllers.StoreByOriginController
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
-import com.example.splashscreenbaskit.viewmodel.CartViewModel
 import com.google.gson.Gson
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -348,7 +347,6 @@ fun HomeScreen() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val cartViewModel: CartViewModel = viewModel()
 
     Log.d("HomeScreen", "Current Route: $currentRoute")
 
@@ -386,7 +384,13 @@ fun HomeScreen() {
                     )
                 }
                 composable(BottomBarScreen.Cart.route) {
-                    CartScreen(cartViewModel = cartViewModel, navController = navController)
+                    val context = LocalContext.current
+                    val lifecycleOwner = LocalLifecycleOwner.current
+                    val apiService = RetrofitInstance.create(ApiService::class.java)
+
+                    val cartController = remember { CartController(lifecycleOwner, context, apiService) }
+
+                    CartScreen(cartController = cartController, navController = navController)
                 }
                 composable(BottomBarScreen.Account.route) {
                     AccountActivity(navController)
@@ -400,7 +404,9 @@ fun HomeScreen() {
                 ) { backStackEntry ->
 
                     val apiService = RetrofitInstance.create(ApiService::class.java)
-                    val cartController = remember { CartController(apiService) }
+                    val context = LocalContext.current
+                    val lifecycleOwner = LocalLifecycleOwner.current
+                    val cartController = remember { CartController(lifecycleOwner, context, apiService) }
 
                     val productName = backStackEntry.arguments?.getString("productName") ?: ""
                     val productJson = backStackEntry.arguments?.getString("productResponse") ?: ""
@@ -415,10 +421,13 @@ fun HomeScreen() {
                 }
 
                 composable("CartScreen") {
-                    CartScreen(cartViewModel = cartViewModel, navController = navController)
-                }
-                composable("CheckoutScreen") {
-                    CheckoutScreen(cartViewModel = cartViewModel, navController = navController)
+                    val context = LocalContext.current
+                    val lifecycleOwner = LocalLifecycleOwner.current
+                    val apiService = RetrofitInstance.create(ApiService::class.java)
+
+                    val cartController = remember { CartController(lifecycleOwner, context, apiService) }
+
+                    CartScreen(cartController = cartController, navController = navController)
                 }
                 composable("LoginActivity") {
                     LoginActivity(navController)
@@ -459,11 +468,19 @@ fun HomeScreen() {
                 composable("TB_OrdersActivity") {
                     TB_OrdersContent(navController)
                 }
-                composable("DagupanOrders") {
-                    DagupanOrders(navController)
+                composable("StoreRequestScreen") {
+                    StoreRequestScreen(navController)
                 }
-                composable("CalasiaoOrders") {
-                    CalasiaoOrders(navController)
+                composable("AccountActivity") {
+                    AccountActivity(navController)
+                }
+                composable("CheckoutScreen") {
+                    val context = LocalContext.current
+                    val lifecycleOwner = LocalLifecycleOwner.current
+                    val apiService = RetrofitInstance.create(ApiService::class.java)
+
+                    val cartController = remember { CartController(lifecycleOwner, context, apiService) }
+                    CheckoutScreen(cartController = cartController, navController = navController)
                 }
                 composable(
                     "ShopScreen/{vendorName}/{vendorId}",

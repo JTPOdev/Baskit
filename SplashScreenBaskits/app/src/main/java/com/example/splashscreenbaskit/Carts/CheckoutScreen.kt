@@ -1,5 +1,7 @@
 package com.example.splashscreenbaskit.Carts
 
+import CartItem
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
-import com.example.splashscreenbaskit.viewmodel.CartViewModel
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -29,23 +30,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import com.example.splashscreenbaskit.R
-@Preview(showBackground = true)
-@Composable
-fun CheckoutScreenPreview(){
-    val cartViewModel = CartViewModel()
-    val navController = rememberNavController()
-    CheckoutScreen(cartViewModel, navController)
-}
+import com.example.splashscreenbaskit.controller.CartController
 
 @Composable
-fun CheckoutScreen(cartViewModel: CartViewModel, navController: NavController) {
-    val cartItems by remember { mutableStateOf(cartViewModel.cartItems) }
+fun CheckoutScreen(cartController: CartController, navController: NavController) {
+    var cartItems by remember { mutableStateOf<List<CartItem>>(emptyList()) }
     var showCodeDialog by remember { mutableStateOf(false) }
-
     val scrollState = rememberScrollState()
 
+    // Fetch cart items when screen loads
+    LaunchedEffect(Unit) {
+        cartController.fetchCartItems { success, message, items ->
+            if (success && items != null) {
+                cartItems = items
+            } else {
+                Log.e("CheckoutScreen", message ?: "Error fetching cart")
+            }
+        }
+    }
+
     Column(
-        modifier = Modifier.fillMaxSize() .verticalScroll(scrollState)
+        modifier = Modifier.fillMaxSize().verticalScroll(scrollState)
     ) {
         // Toolbar
         Row(
@@ -96,14 +101,10 @@ fun CheckoutScreen(cartViewModel: CartViewModel, navController: NavController) {
                 .padding(horizontal = 30.dp, vertical = 30.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val totalPrice = cartItems.sumOf { it.product_price * it.product_quantity }
 
-        val totalPrice = cartItems.sumOf { it.price * it.quantity }
+            Divider(thickness = 0.5.dp, color = Color.Black)
 
-
-            Divider(
-                thickness = 0.5.dp,
-                color = Color.Black
-            )
             Text(
                 text = "Waiting for Tagabili...",
                 fontSize = 16.sp,
@@ -111,20 +112,6 @@ fun CheckoutScreen(cartViewModel: CartViewModel, navController: NavController) {
                 fontFamily = poppinsFontFamily,
                 modifier = Modifier.padding(top = 25.dp, bottom = 8.dp)
             )
-//            Text(
-//                text = "Tagabili: Juan Sebastian",
-//                fontSize = 16.sp,
-//                fontWeight = FontWeight.SemiBold,
-//                fontFamily = poppinsFontFamily,
-//                modifier = Modifier.padding(top = 25.dp, bottom = 8.dp)
-//            )
-//            Text(
-//                text = "0900-000-0000",
-//                fontSize = 16.sp,
-//                fontFamily = poppinsFontFamily,
-//                fontWeight = FontWeight.SemiBold,
-//                color = Color.Black
-//            )
 
             Spacer(modifier = Modifier.height(30.dp))
 
@@ -134,7 +121,7 @@ fun CheckoutScreen(cartViewModel: CartViewModel, navController: NavController) {
                     .height(60.dp)
                     .background(Color(0xFFEEEDED), shape = RoundedCornerShape(10.dp)),
                 contentAlignment = Alignment.Center
-            ){
+            ) {
                 Text(
                     text = "GCash and Cash are accepted",
                     fontSize = 14.sp,
@@ -146,10 +133,10 @@ fun CheckoutScreen(cartViewModel: CartViewModel, navController: NavController) {
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            Row (
-                modifier = Modifier.fillMaxWidth() .padding(horizontal = 10.dp),
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
-            ){
+            ) {
                 Text(
                     text = "Subtotal:",
                     fontSize = 16.sp,
@@ -168,10 +155,10 @@ fun CheckoutScreen(cartViewModel: CartViewModel, navController: NavController) {
 
             Spacer(modifier = Modifier.height(15.dp))
 
-            Row (
-                modifier = Modifier.fillMaxWidth() .padding(horizontal = 10.dp),
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
-            ){
+            ) {
                 Text(
                     text = "Tagabili Fee:",
                     fontSize = 16.sp,
@@ -190,18 +177,14 @@ fun CheckoutScreen(cartViewModel: CartViewModel, navController: NavController) {
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            HorizontalDivider(
-                modifier = Modifier.padding(top = 15.dp, bottom = 8.dp),
-                thickness = 0.5.dp,
-                color = Color.Black
-            )
+            Divider(thickness = 0.5.dp, color = Color.Black)
 
             Spacer(modifier = Modifier.height(7.dp))
 
-            Row (
-                modifier = Modifier.fillMaxWidth() .padding(horizontal = 10.dp),
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
-            ){
+            ) {
                 Text(
                     text = "Total:",
                     fontSize = 24.sp,
@@ -217,14 +200,21 @@ fun CheckoutScreen(cartViewModel: CartViewModel, navController: NavController) {
                     color = Color(0xFF83BD70)
                 )
             }
-            Spacer(modifier = Modifier.height(40.dp))
-            Button(
-                onClick = {showCodeDialog = true },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF83BD70)),
-                modifier = Modifier.width(205.dp) .height(58.dp)
-            ) {
-                Text(text = "PAY IN STORE", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = poppinsFontFamily)
 
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Button(
+                onClick = { showCodeDialog = true },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF83BD70)),
+                modifier = Modifier.width(205.dp).height(58.dp)
+            ) {
+                Text(
+                    text = "PAY IN STORE",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = poppinsFontFamily
+                )
             }
         }
     }
@@ -232,7 +222,7 @@ fun CheckoutScreen(cartViewModel: CartViewModel, navController: NavController) {
     if (showCodeDialog) {
         YourCodeDialog(
             onDismiss = { showCodeDialog = false },
-            onSaveImage = {  }
+            onSaveImage = { /* Handle saving */ }
         )
     }
 }
@@ -360,7 +350,7 @@ fun CheckoutItemView(item: CartItem) {
         ) {
             // Use Coil's rememberImagePainter to load the image from a URL string
             Image(
-                painter = rememberImagePainter(item.imageResId ?: "default_image_url"),
+                painter = rememberImagePainter(item.product_image ?: "default_image_url"),
                 contentDescription = "Product Image",
                 modifier = Modifier
                     .size(80.dp)
@@ -369,20 +359,20 @@ fun CheckoutItemView(item: CartItem) {
             Spacer(modifier = Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = item.name,
+                    text = item.product_name,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = poppinsFontFamily
                 )
                 Text(
-                    text = "${item.quantity} pcs",
+                    text = "${item.product_quantity} pcs",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     fontFamily = poppinsFontFamily
                 )
             }
             Text(
-                text = "₱${"%.2f".format(item.price * item.quantity)}",
+                text = "₱${"%.2f".format(item.product_price * item.product_quantity)}",
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = poppinsFontFamily,

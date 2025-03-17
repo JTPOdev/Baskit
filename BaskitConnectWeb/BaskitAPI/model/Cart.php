@@ -5,7 +5,6 @@ class Cart
     // --------- ADD TO CART/BASKIT -------- //
     public static function addToCart($userId, $productId, $quantity, $portion, $conn, $productImageUrl)
     {
-        // Validate user existence
         $userQuery = "SELECT * FROM users WHERE id = ?";
         $stmt = $conn->prepare($userQuery);
         $stmt->bind_param("i", $userId);
@@ -16,13 +15,11 @@ class Cart
             return ['message' => 'User not found'];
         }
     
-        // Fetch product details
         $product = Product::getProductById($productId, $conn);
         if (!$product) {
             return ['message' => 'Product not found'];
         }
     
-        // Check if product already exists in the cart
         $sql = "SELECT * FROM cart WHERE user_id = ? AND product_id = ? AND product_portion = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("iis", $userId, $productId, $portion);
@@ -30,14 +27,12 @@ class Cart
         $result = $stmt->get_result();
     
         if ($result->num_rows > 0) {
-            // Update cart if product already exists
             $sql = "UPDATE cart 
                     SET product_quantity = product_quantity + ?, product_image = ? 
                     WHERE user_id = ? AND product_id = ? AND product_portion = ?";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("isiis", $quantity, $productImageUrl, $userId, $productId, $portion);
         } else {
-            // Insert new product into the cart
             $sql = "INSERT INTO cart 
                       (user_id, product_id, product_name, product_price, product_quantity, product_portion, product_origin, store_id, store_name, product_image) 
                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -55,8 +50,6 @@ class Cart
                 $productImageUrl
             );
         }
-    
-        // Execute the query
         return $stmt->execute() ? ['message' => 'Added to cart'] : ['message' => 'Failed to add to cart'];
     }
     

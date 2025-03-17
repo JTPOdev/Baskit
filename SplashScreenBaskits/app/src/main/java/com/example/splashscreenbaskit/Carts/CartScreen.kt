@@ -1,5 +1,6 @@
 package com.example.splashscreenbaskit.Carts
 
+import CartItem
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
-import com.example.splashscreenbaskit.viewmodel.CartViewModel
 import com.example.splashscreenbaskit.R
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
 import androidx.compose.material.icons.Icons
@@ -26,20 +26,27 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
+import com.example.splashscreenbaskit.controller.CartController
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun CartScreenPreview() {
-    val navController = rememberNavController()
-    val cartViewModel = CartViewModel()
-    CartScreen(cartViewModel = cartViewModel, navController)
-}
-@Composable
-fun CartScreen(cartViewModel: CartViewModel, navController: NavController) {
-    val cartItems by remember { mutableStateOf(cartViewModel.cartItems) }
 
-    Column(modifier = Modifier.fillMaxSize()
-    ) {
+@Composable
+fun CartScreen(cartController: CartController, navController: NavController) {
+    var cartItems by remember { mutableStateOf<List<CartItem>>(emptyList()) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        cartController.fetchCartItems { success, message, items ->
+            isLoading = false
+            if (success) {
+                cartItems = items ?: emptyList()
+            } else {
+                errorMessage = message
+            }
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
         // Title Bar
         Row(
             modifier = Modifier
@@ -47,32 +54,46 @@ fun CartScreen(cartViewModel: CartViewModel, navController: NavController) {
                 .padding(top = 60.dp, start = 30.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier
-                    //.padding(top = 60.dp, start = 30.dp)
-                    .size(20.dp)
-            ) {
+            IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    painter = painterResource(id = R.drawable.back),
+                    imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.Black,
-                    modifier = Modifier.size(20.dp)
+                    tint = Color.Black
                 )
             }
-            Spacer(modifier = Modifier.width(90.dp))
+            Spacer(modifier = Modifier.width(65.dp))
             Text(
                 text = "My Basket",
                 fontSize = 24.sp,
                 fontFamily = poppinsFontFamily,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.CenterVertically)
+                fontWeight = FontWeight.Bold
             )
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Product List inside padded Column
+        // Loading Indicator
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+            return
+        }
+
+        // Display Error Message (if any)
+        errorMessage?.let {
+            Text(
+                text = it,
+                color = Color.Red,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+
+        // Product List
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -104,15 +125,16 @@ fun CartScreen(cartViewModel: CartViewModel, navController: NavController) {
                     items(cartItems) { item ->
                         CartItemView(
                             item = item,
-                            onRemoveItem = { cartViewModel.removeFromCart(item) },
-                            onIncreaseQuantity = { cartViewModel.increaseQuantity(item) },
-                            onDecreaseQuantity = { cartViewModel.decreaseQuantity(item) }
+                            onRemoveItem = { /* Call API to remove item */ },
+                            onIncreaseQuantity = { /* Call API to increase quantity */ },
+                            onDecreaseQuantity = { /* Call API to decrease quantity */ }
                         )
                     }
                 }
             }
         }
 
+        // Checkout Section
         if (cartItems.isNotEmpty()) {
             Box(
                 modifier = Modifier
@@ -130,8 +152,8 @@ fun CartScreen(cartViewModel: CartViewModel, navController: NavController) {
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val totalPrice = cartItems.sumOf { it.price * it.quantity }
-                val totalItems = cartItems.sumOf { it.quantity }
+                val totalPrice = cartItems.sumOf { it.product_price * it.product_quantity }
+                val totalItems = cartItems.sumOf { it.product_quantity }
 
                 Text(
                     text = "ITEMS: $totalItems",
@@ -180,34 +202,31 @@ fun CartItemView(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Use Coil's rememberImagePainter to load the image URL
+                // Load image using Coil
                 Image(
-                    painter = rememberImagePainter(item.imageResId ?: "default_image_url"),
+                    painter = rememberImagePainter(item.product_image ?: "default_image_url"),
                     contentDescription = "Product Image",
                     modifier = Modifier.size(80.dp)
                 )
                 Spacer(modifier = Modifier.width(10.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = item.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(text = item.product_name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     Text(
-                        text = "${item.weight ?: "N/A"}",
+                        text = item.product_portion ?: "N/A",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         color = Color.Gray
                     )
                     Text(
-                        text = "₱${"%.2f".format(item.price)}",
+                        text = "₱${"%.2f".format(item.product_price)}",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF6CBF5F)
                     )
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    IconButton(
-                        onClick = onRemoveItem,
-                        modifier = Modifier.align(Alignment.End)
-                    ) {
+                    IconButton(onClick = onRemoveItem) {
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Delete Item",
@@ -223,7 +242,7 @@ fun CartItemView(
                                 modifier = Modifier.size(15.dp)
                             )
                         }
-                        Text(text = item.quantity.toString(), fontSize = 18.sp)
+                        Text(text = item.product_quantity.toString(), fontSize = 18.sp)
                         IconButton(onClick = onIncreaseQuantity) {
                             Icon(
                                 painter = painterResource(id = R.drawable.add),

@@ -114,7 +114,7 @@ fun AccountActivity(navController: NavController) {
 
                 // Change text based on role
                 Text(
-                    text = if (userRole == "Consumer") "Start Selling >" else "My Store",
+                    text = if (userRole == "Consumer") "Start Selling >" else "My Store >",
                     fontFamily = poppinsFontFamily,
                     fontSize = 10.sp
                 )
@@ -163,7 +163,7 @@ fun AccountActivity(navController: NavController) {
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Account\ndetails",
+                text = "Account Details",
                 style = MaterialTheme.typography.headlineMedium,
                 color = Color.Black,
                 fontWeight = FontWeight.ExtraBold,
@@ -215,7 +215,10 @@ fun AccountActivity(navController: NavController) {
                 border = BorderStroke(1.dp, Color(0xFFE22727)),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFFE22727))
             ) {
-                Text(text = "Log Out", fontWeight = FontWeight.Bold, fontFamily = poppinsFontFamily)
+                Text(text = "Log Out",
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = poppinsFontFamily
+                )
             }
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -227,9 +230,17 @@ fun AccountActivity(navController: NavController) {
         AlertDialog(
             onDismissRequest = { showDialog.value = false },
             title = { Text("Log Out?", fontSize = 18.sp, fontFamily = poppinsFontFamily, fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to log out?", fontSize = 14.sp, fontFamily = poppinsFontFamily) },
+            text = { Text("Are you sure you want to log out?", fontSize = 14.sp, fontFamily = poppinsFontFamily, fontWeight = FontWeight.Normal) },
             confirmButton = {
                 Button(
+                    modifier = Modifier
+                        .height(38.dp)
+                        .width(105.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFCB3B3B),
+                        contentColor = Color.White
+                    ),
                     onClick = {
                         logoutController.logout { success, message ->
                             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -240,10 +251,27 @@ fun AccountActivity(navController: NavController) {
                         }
                         showDialog.value = false
                     }
-                ) { Text("Log Out", fontSize = 15.sp, fontFamily = poppinsFontFamily) }
+                ) { Text("Log Out",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = poppinsFontFamily)
+                }
             },
             dismissButton = {
-                Button(onClick = { showDialog.value = false }) { Text("Cancel") }
+                Button(modifier = Modifier
+                    .height(38.dp)
+                    .width(105.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD9D9D9),
+                        contentColor = Color.Black
+                    ),
+                    onClick = { showDialog.value = false }
+                ) { Text("Cancel",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = poppinsFontFamily)
+                }
             }
         )
     }

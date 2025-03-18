@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.input.VisualTransformation
@@ -38,6 +39,12 @@ import com.example.splashscreenbaskit.Home.BottomBarScreen
 import com.example.splashscreenbaskit.R
 import com.example.splashscreenbaskit.controller.LoginController
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
+
+@Preview(showBackground = true)
+@Composable
+fun LoginActivity() {
+    LoginActivity(navController = rememberNavController())
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -122,7 +129,7 @@ fun LoginActivity(navController: NavController) {
             isError = UsernameOrEmailError.value.isNotEmpty(),
             colors = TextFieldDefaults.outlinedTextFieldColors(
                 cursorColor = if (UsernameOrEmailError.value.isNotEmpty() || NotVerifiedError.value.isNotEmpty()) Red else DarkGray,
-                focusedBorderColor = if (UsernameOrEmailError.value.isNotEmpty() || NotVerifiedError.value.isNotEmpty()) Red else DarkBlue,
+                focusedBorderColor = if (UsernameOrEmailError.value.isNotEmpty() || NotVerifiedError.value.isNotEmpty()) Red else Black,
                 unfocusedBorderColor = if (UsernameOrEmailError.value.isNotEmpty() || NotVerifiedError.value.isNotEmpty()) Red else Color.Gray,
                 errorBorderColor = Red,
                 errorLabelColor = Red,
@@ -130,9 +137,21 @@ fun LoginActivity(navController: NavController) {
             )
         )
         if (UsernameOrEmailError.value.isNotEmpty()) {
-            Text(UsernameOrEmailError.value, color = Color.Red, fontSize = 12.sp)
+            Text(UsernameOrEmailError.value,
+                color = Color.Red,
+                fontSize = 12.sp,
+                fontFamily = poppinsFontFamily,
+                fontWeight = FontWeight.Normal,
+                textAlign = TextAlign.Start
+            )
         }else if (NotVerifiedError.value.isNotEmpty()){
-            Text(NotVerifiedError.value, color = Color.Red, fontSize = 12.sp)
+            Text(NotVerifiedError.value,
+                color = Color.Red,
+                fontSize = 12.sp,
+                fontFamily = poppinsFontFamily,
+                fontWeight = FontWeight.Normal,
+                textAlign = TextAlign.Start
+            )
         }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -166,7 +185,7 @@ fun LoginActivity(navController: NavController) {
             isError = PasswordError.value.isNotEmpty(),
             colors = TextFieldDefaults.outlinedTextFieldColors(
                 cursorColor = if (PasswordError.value.isNotEmpty()) Red else DarkGray,
-                focusedBorderColor = if (PasswordError.value.isNotEmpty()) Red else DarkBlue,
+                focusedBorderColor = if (PasswordError.value.isNotEmpty()) Red else Black,
                 unfocusedBorderColor = if (PasswordError.value.isNotEmpty()) Red else Color.Gray,
                 errorBorderColor = Red,
                 errorLabelColor = Red,
@@ -174,7 +193,7 @@ fun LoginActivity(navController: NavController) {
             )
         )
         if (PasswordError.value.isNotEmpty()) {
-            Text(PasswordError.value, color = Color.Red, fontSize = 12.sp)
+            Text(PasswordError.value, color = Color.Red, fontSize = 12.sp, fontFamily = poppinsFontFamily, fontWeight = FontWeight.Normal)
         }
 
 

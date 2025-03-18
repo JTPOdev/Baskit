@@ -1,6 +1,7 @@
 package com.example.splashscreenbaskit.AccountDetails
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,7 +15,14 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -56,7 +64,7 @@ fun SettingsActivity(navController: NavHostController) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-    ){
+    ) {
 
         Box(
             modifier = Modifier
@@ -67,32 +75,34 @@ fun SettingsActivity(navController: NavHostController) {
             IconButton(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier
-                    .padding(top = 45.dp, start = 25.dp)
+                    .padding(top = 60.dp, start = 25.dp)
                     .size(35.dp)
-                    .background(Color.White, shape = RoundedCornerShape(50))
             ) {
                 Icon(
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(35.dp),
                     painter = painterResource(id = R.drawable.back),
                     contentDescription = "Back",
                     tint = Color.Black
                 )
             }
 
-            Image(
-                painter = painterResource(id = R.drawable.settings_img),
-                contentDescription = null,
-                modifier = Modifier
-                    .height(170.dp)
-                    .padding( start = 20.dp)
-                    .offset(x = 60.dp,y = (100).dp)
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(100.dp))
+                Image(
+                    painter = painterResource(id = R.drawable.settings_img),
+                    contentDescription = null,
+                    modifier = Modifier.height(170.dp)
+                )
+            }
 
             // Inner Box
             Box(
                 modifier = Modifier
                     .height(680.dp)
-                    .width(420.dp)
+                    .fillMaxWidth()
                     .padding(top = 160.dp)
                     .clip(RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp))
                     .align(Alignment.BottomCenter)
@@ -113,59 +123,149 @@ fun SettingsActivity(navController: NavHostController) {
                         fontSize = 24.sp,
                         fontFamily = poppinsFontFamily
                     )
-                }
-            }
-        }
-    }
 
-    Column(modifier = Modifier.padding(top = 400.dp, start = 30.dp, end = 30.dp),
-        verticalArrangement = Arrangement.Center
-    ) {
-
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        Column {
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFFF1F1F1), RoundedCornerShape(20.dp))
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(15.dp),
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 15.dp)
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 10.dp)
+                            .fillMaxWidth()
+                            .background(Color.White, RoundedCornerShape(20.dp))
                     ) {
-                        Text(
-                            text = "Receive push notifications",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-
-                        Switch(
-                            checked = notificationsEnabled,
-                            onCheckedChange = { notificationsEnabled = it },
-                            modifier = Modifier
-                                .padding(start = 50.dp)
-                                .size(30.dp),
-                            colors = SwitchDefaults.colors(
-                                //checkedThumbColor = Color.Green,
-                                //uncheckedThumbColor = Color.Red,
-                                checkedTrackColor = Color.DarkGray,
-                                uncheckedTrackColor = Color.LightGray
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(15.dp),
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 15.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Receive push notifications",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                fontFamily = poppinsFontFamily
                             )
-                        )
 
+                            Switch(
+                                checked = notificationsEnabled,
+                                onCheckedChange = { notificationsEnabled = it },
+                                modifier = Modifier
+                                    .padding(start = 30.dp)
+                                    .size(30.dp),
+                                colors = SwitchDefaults.colors(
+                                    checkedTrackColor = Color(0xFFB9B9B9),
+                                    uncheckedTrackColor = Color.LightGray
+                                )
+                            )
+
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(30.dp))
+
+                    Text(
+                        text = "About Us",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp,
+                        fontFamily = poppinsFontFamily
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 10.dp)
+                            .fillMaxWidth()
+                            .background(Color.White, RoundedCornerShape(20.dp))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 30.dp)
+                        ) {
+                            Text(
+                                text = "Baskit is bla bla bla",
+                                fontFamily = poppinsFontFamily,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Normal
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(30.dp))
+
+                    Text(
+                        text = "Contact Us",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp,
+                        fontFamily = poppinsFontFamily
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 10.dp)
+                            .fillMaxSize()
+                            .background(Color.White, RoundedCornerShape(20.dp))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 30.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Phone,
+                                    contentDescription = null,
+                                    tint = Color.DarkGray
+                                )
+                                Spacer(modifier = Modifier.width(15.dp))
+                                Text(
+                                    text = "0900-000-0000",
+                                    fontFamily = poppinsFontFamily,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(30.dp))
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Email,
+                                    contentDescription = null,
+                                    tint = Color.DarkGray
+                                )
+                                Spacer(modifier = Modifier.width(15.dp))
+                                Text(
+                                    text = "baskitofficial@gmail.com",
+                                    fontFamily = poppinsFontFamily,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(30.dp))
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = null,
+                                    tint = Color.DarkGray
+                                )
+                                Spacer(modifier = Modifier.width(15.dp))
+                                Text(
+                                    text = "Somewhere",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    fontFamily = poppinsFontFamily
+                                )
+                            }
+                        }
                     }
                 }
-
             }
         }
     }

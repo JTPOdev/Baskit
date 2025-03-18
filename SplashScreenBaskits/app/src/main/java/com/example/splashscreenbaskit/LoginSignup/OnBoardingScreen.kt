@@ -154,9 +154,9 @@ fun OnboardingImage(page: Int, maxWidth: Dp, maxHeight: Dp) {
         contentDescription = null,
         modifier = Modifier
             .fillMaxWidth()
-            .height(maxHeight * 0.4f)
-            .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)),
-        contentScale = ContentScale.Crop
+            .height(maxHeight * 0.36f)
+            .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
+        //contentScale = ContentScale.Crop
     )
 }
 
@@ -169,11 +169,14 @@ fun OnboardingContent(title: String, description: String, maxWidth: Dp, maxHeigh
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(maxHeight * 0.02f)
     ) {
+
+        Spacer(modifier = Modifier.height(70.dp))
+
         Text(
             text = title,
             fontFamily = poppinsFontFamily,
             style = TextStyle(
-                fontSize = maxWidth.value * 0.10f.sp,
+                fontSize = maxWidth.value * 0.08f.sp,
                 lineHeight = maxWidth.value * 0.045f.sp
             ),
             fontWeight = FontWeight.ExtraBold,
@@ -184,7 +187,7 @@ fun OnboardingContent(title: String, description: String, maxWidth: Dp, maxHeigh
         Text(
             text = description,
             fontFamily = poppinsFontFamily,
-            fontSize = maxWidth.value * 0.05f.sp,
+            fontSize = maxWidth.value * 0.04f.sp,
             fontWeight = FontWeight.Normal,
             color = Color.Black,
             textAlign = TextAlign.Center

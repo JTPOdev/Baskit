@@ -39,7 +39,7 @@ fun RulesScreenPreview() {
 @Composable
 fun RulesScreen(navController: NavHostController) {
     val scrollState = rememberScrollState()
-    var isScrolledToEnd by remember { mutableStateOf(false) }
+    //var isScrolledToEnd by remember { mutableStateOf(false) }
     var hasReachedBottom by remember { mutableStateOf(false) }
 
     val rules = listOf(
@@ -77,18 +77,19 @@ fun RulesScreen(navController: NavHostController) {
             .background(Color.White)
             .verticalScroll(scrollState)
     ) {
-        Text(
-            text = "< Back",
-            fontSize = 15.sp,
-            color = Color.Black,
-            fontWeight = FontWeight.SemiBold,
-            fontFamily = poppinsFontFamily,
+        IconButton(
+            onClick = { navController.popBackStack() },
             modifier = Modifier
-                .padding(top = 50.dp, start = 30.dp)
-                .clickable { navController.popBackStack() }
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
+                .padding(top = 60.dp, start = 25.dp)
+                .size(35.dp)
+        ) {
+            Icon(
+                modifier = Modifier.size(35.dp),
+                painter = painterResource(id = R.drawable.back),
+                contentDescription = "Back",
+                tint = Color.Black
+            )
+        }
 
         Text(
             text = "Start Your Own Store",

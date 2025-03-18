@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -21,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
@@ -176,7 +178,13 @@ fun SignUpActivity(navController: NavController)
                     singleLine = true,
                     label = { Text(text = "First Name", fontFamily = poppinsFontFamily)},
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        cursorColor = DarkGray,
+                        focusedBorderColor = Black,
+                        unfocusedBorderColor = Color.Gray,
+
+                        )
                 )
 
                 // Last Name field
@@ -189,7 +197,12 @@ fun SignUpActivity(navController: NavController)
                     singleLine = true,
                     label = { Text(text = "Last Name", fontFamily = poppinsFontFamily) },
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        cursorColor = DarkGray,
+                        focusedBorderColor = Black,
+                        unfocusedBorderColor = Color.Gray
+                    )
                 )
             }
 
@@ -231,7 +244,7 @@ fun SignUpActivity(navController: NavController)
                 interactionSource = remember { MutableInteractionSource() },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     cursorColor = if (birthdayError.value.isNotEmpty()) Red else DarkGray,
-                    focusedBorderColor = if (birthdayError.value.isNotEmpty()) Red else DarkBlue,
+                    focusedBorderColor = if (birthdayError.value.isNotEmpty()) Red else Black,
                     unfocusedBorderColor = if (birthdayError.value.isNotEmpty()) Red else Color.Gray,
                     errorBorderColor = Red,
                     errorLabelColor = Red,
@@ -240,7 +253,13 @@ fun SignUpActivity(navController: NavController)
                 isError = birthdayError.value.isNotEmpty()
             )
             if (birthdayError.value.isNotEmpty()) {
-                Text(birthdayError.value, color = Red, fontSize = 12.sp)
+                Text(birthdayError.value,
+                    color = Red,
+                    fontSize = 12.sp,
+                    fontFamily = poppinsFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    textAlign = TextAlign.Start
+                )
             }
 
             Spacer(modifier = Modifier.height(2.dp))
@@ -270,7 +289,7 @@ fun SignUpActivity(navController: NavController)
                 shape = RoundedCornerShape(10.dp),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     cursorColor = if (userNameError.value.isNotEmpty()) Red else DarkGray,
-                    focusedBorderColor = if (userNameError.value.isNotEmpty()) Red else DarkBlue,
+                    focusedBorderColor = if (userNameError.value.isNotEmpty()) Red else Black,
                     unfocusedBorderColor = if (userNameError.value.isNotEmpty()) Red else Color.Gray,
                     errorBorderColor = Red,
                     errorLabelColor = Red,
@@ -280,7 +299,13 @@ fun SignUpActivity(navController: NavController)
             )
 
             if (userNameError.value.isNotEmpty()) {
-                Text(userNameError.value, color = Red, fontSize = 12.sp)
+                Text(userNameError.value,
+                    color = Red,
+                    fontSize = 12.sp,
+                    fontFamily = poppinsFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    textAlign = TextAlign.Start
+                )
             }
 
 
@@ -305,7 +330,7 @@ fun SignUpActivity(navController: NavController)
                 shape = RoundedCornerShape(10.dp),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     cursorColor = if (contactNumberError.value.isNotEmpty()) Red else DarkGray,
-                    focusedBorderColor = if (contactNumberError.value.isNotEmpty()) Red else DarkBlue,
+                    focusedBorderColor = if (contactNumberError.value.isNotEmpty()) Red else Black,
                     unfocusedBorderColor = if (contactNumberError.value.isNotEmpty()) Red else Color.Gray,
                     errorBorderColor = Red,
                     errorLabelColor = Red,
@@ -313,7 +338,14 @@ fun SignUpActivity(navController: NavController)
                 ),
                 isError = contactNumberError.value.isNotEmpty()
             )
-            if (contactNumberError.value.isNotEmpty()) Text(contactNumberError.value, color = Color.Red, fontSize = 12.sp) //NEW
+            if (contactNumberError.value.isNotEmpty())
+                Text(contactNumberError.value,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    fontFamily = poppinsFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    textAlign = TextAlign.Start
+                ) //NEW
 
             Spacer(modifier = Modifier.height(2.dp))
 
@@ -339,7 +371,7 @@ fun SignUpActivity(navController: NavController)
                 shape = RoundedCornerShape(10.dp),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     cursorColor = if (emailError.value.isNotEmpty()) Red else DarkGray,
-                    focusedBorderColor = if (emailError.value.isNotEmpty()) Red else DarkBlue,
+                    focusedBorderColor = if (emailError.value.isNotEmpty()) Red else Black,
                     unfocusedBorderColor = if (emailError.value.isNotEmpty()) Red else Color.Gray,
                     errorBorderColor = Red,
                     errorLabelColor = Red,
@@ -347,7 +379,14 @@ fun SignUpActivity(navController: NavController)
                 ),
                 isError = emailError.value.isNotEmpty()
             )
-            if (emailError.value.isNotEmpty()) Text(emailError.value, color = Red, fontSize = 12.sp) //NEW
+            if (emailError.value.isNotEmpty())
+                Text(emailError.value,
+                    color = Red,
+                    fontSize = 12.sp,
+                    fontFamily = poppinsFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    textAlign = TextAlign.Start
+                ) //NEW
 
 
             Spacer(modifier = Modifier.height(2.dp))
@@ -387,7 +426,7 @@ fun SignUpActivity(navController: NavController)
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     cursorColor = if (passwordError.value.isNotEmpty()) Red else DarkGray,
-                    focusedBorderColor = if (passwordError.value.isNotEmpty()) Red else DarkBlue,
+                    focusedBorderColor = if (passwordError.value.isNotEmpty()) Red else Black,
                     unfocusedBorderColor = if (passwordError.value.isNotEmpty()) Red else Color.Gray,
                     errorBorderColor = Red,
                     errorLabelColor = Red,
@@ -395,7 +434,14 @@ fun SignUpActivity(navController: NavController)
                 ),
                 isError = passwordError.value.isNotEmpty()
             )
-            if (passwordError.value.isNotEmpty()) Text(passwordError.value, color = Red, fontSize = 12.sp)
+            if (passwordError.value.isNotEmpty())
+                Text(passwordError.value,
+                    color = Red,
+                    fontSize = 12.sp,
+                    fontFamily = poppinsFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    textAlign = TextAlign.Start
+                )
 
             Spacer(modifier = Modifier.height(2.dp))
 
@@ -439,7 +485,14 @@ fun SignUpActivity(navController: NavController)
                     errorLeadingIconColor = Red
                 )
             )
-            if (confirmPasswordError.isNotEmpty()) Text(confirmPasswordError, color = Red, fontSize = 12.sp)
+            if (confirmPasswordError.isNotEmpty())
+                Text(confirmPasswordError,
+                    color = Red,
+                    fontSize = 12.sp,
+                    fontFamily = poppinsFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    textAlign = TextAlign.Start
+                )
 
             Spacer(modifier = Modifier.height(1.dp))
 
@@ -543,7 +596,7 @@ fun SignUpActivity(navController: NavController)
                             Button(
                                 modifier = Modifier
                                     .height(38.dp)
-                                    .width(120.dp),
+                                    .width(105.dp),
                                 shape = RoundedCornerShape(10.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFF1d7151),
@@ -621,7 +674,10 @@ fun TermsAndConditions(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit) {
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 25.dp) .background(Color.White)
+                modifier = Modifier
+                    .padding(start = 25.dp)
+                    .background(Color.White)
+                    .clickable { showDialog = true }
             ) {
                 Checkbox(
                     checked = isChecked,
@@ -640,13 +696,15 @@ fun TermsAndConditions(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit) {
                     color = Color(0xFF4557FF)
                 )
 
-                IconButton(onClick = { showDialog = true }) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Expand Terms",
-                        modifier = Modifier.padding(end = 20.dp)
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = "Expand Terms",
+                    modifier = Modifier.padding(end = 20.dp)
+                )
+
+//                IconButton(onClick = { showDialog = true }) {
+//
+//                }
             }
 
             if (showDialog) {

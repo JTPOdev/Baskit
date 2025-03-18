@@ -142,20 +142,20 @@ fun StoreHeader(
             .height(315.dp)
     ) {
         // Back Button
+        Row{
+
+        }
         IconButton(
             onClick = { navController.popBackStack() },
             modifier = Modifier
-                .zIndex(1f)
-                .padding(top = 70.dp, start = 40.dp)
+                .padding(top = 60.dp, start = 25.dp)
                 .align(Alignment.TopStart)
                 .size(40.dp)
-                .background(Color(0xAAFFFFFF), shape = CircleShape)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.back),
                 contentDescription = "Back",
-                tint = Color.Black,
-                modifier = Modifier.size(24.dp)
+                tint = Color.White
             )
         }
 
@@ -179,14 +179,14 @@ fun StoreHeader(
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 70.dp, end = 40.dp)
+                .padding(top = 60.dp, end = 25.dp)
         ) {
             IconButton(onClick = { showMenu = true }) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = "Menu",
                     tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(35.dp)
                 )
             }
 
@@ -196,7 +196,7 @@ fun StoreHeader(
                 modifier = Modifier.background(Color.White)
             ) {
                 DropdownMenuItem(
-                    text = { Text("Edit Image") },
+                    text = { Text("Edit Image", fontFamily = poppinsFontFamily, fontWeight = FontWeight.Normal) },
                     onClick = {
                         showMenu = false
                         imagePickerLauncher.launch("image/*")
@@ -262,7 +262,7 @@ fun ProductList(
             }
             errorMessage.value != null -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = errorMessage.value ?: "Unknown error", color = Color.Red, fontSize = 16.sp)
+                    Text(text = errorMessage.value ?: "Unknown error", color = Color.Red,  fontSize = 14.sp, fontFamily = poppinsFontFamily, fontWeight = FontWeight.Normal)
                 }
             }
             else -> {
@@ -333,7 +333,7 @@ fun FilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
         Text(text = text,
             fontSize = 16.sp,
             fontFamily = poppinsFontFamily,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Bold
         )
     }
 }

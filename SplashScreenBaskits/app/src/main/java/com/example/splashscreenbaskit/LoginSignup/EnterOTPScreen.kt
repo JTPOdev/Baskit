@@ -51,20 +51,27 @@ fun EnterOTPScreen(navController: NavController) {
             .fillMaxSize()
             .background(Color.White)
     ) {
-        Spacer(modifier = Modifier.height(50.dp))
-
-        Text(
-            text = "< Back",
-            fontSize = 14.sp,
-            color = Color.Black,
-            fontWeight = FontWeight.SemiBold,
-            fontFamily = poppinsFontFamily,
+        Box(
             modifier = Modifier
-                .padding(start = 20.dp)
-                .clickable { navController.popBackStack() }
-        )
+                .fillMaxWidth(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier
+                    .padding(top = 60.dp, start = 25.dp)
+                    .align(Alignment.TopStart)
+                    .size(40.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.back),
+                    contentDescription = "Back",
+                    tint = Color.Black
+                )
+            }
+        }
 
-        Spacer(modifier = Modifier.height(70.dp))
+        Spacer(modifier = Modifier.height(30.dp))
 
 
         Column(
@@ -74,7 +81,7 @@ fun EnterOTPScreen(navController: NavController) {
             Image(
                 painter = painterResource(id = R.drawable.otp_img),
                 contentDescription = "Enter one-time pin",
-                modifier = Modifier.height(181.dp),
+                modifier = Modifier.height(200.dp),
             )
         }
 
@@ -84,7 +91,7 @@ fun EnterOTPScreen(navController: NavController) {
                 .padding(horizontal = 40.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             Text(
                 text = "Enter One-Time Pin",

@@ -39,8 +39,37 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.Popup
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.splashscreenbaskit.api.ApiService
+import com.google.gson.Gson
 
+@Preview(showBackground = true)
+@Composable
+fun PreviewProductScreen() {
+    val dummyProduct = ProductsResponse(
+        id = 1,
+        product_name = "Apple",
+        product_price = "50.00",
+        product_category = "Fruits",
+        product_origin = "Dagupan",
+        store_id = 1,
+        store_name = "Fresh Market",
+        store_phone_number = "09123456789",
+        store_address = "123 Street, City",
+        product_image = ""
+    )
 
+    val fakeCartController = CartController(
+        lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current).value,
+        context = LocalContext.current,
+        apiService = RetrofitInstance.create(ApiService::class.java)
+    )
+
+    ProductScreen(
+        navController = rememberNavController(),
+        productName = "Apple",
+        productsResponse = dummyProduct,
+        cartController = fakeCartController
+    )
+}
 @Composable
 fun ProductScreen(
     navController: NavController = rememberNavController(),
@@ -104,16 +133,14 @@ fun ProductScreen(
             IconButton(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier
-                    .padding(top = 70.dp, start = 40.dp)
+                    .padding(top = 60.dp, start = 20.dp)
                     .align(Alignment.TopStart)
-                    .size(20.dp)
-                    .background(Color.White, shape = CircleShape)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.back),
                     contentDescription = "Back",
-                    tint = Color.Black,
-                    modifier = Modifier.size(20.dp)
+                    tint = Color.White,
+                    modifier = Modifier.size(35.dp)
                 )
             }
         }
@@ -293,46 +320,47 @@ fun ProductScreen(
             Box(
                 modifier = Modifier.fillMaxSize()
             ){
-            Button(
-                onClick = {
-                    if (selectedWeight.isNotEmpty()) {
-                        cartController.addToCart(
-                            productId = product.id,
-                            productName = product.product_name,
-                            productPrice = product.product_price.toDoubleOrNull() ?: 0.0,
-                            productQuantity = quantity,
-                            productPortion = selectedWeight,
-                            productOrigin = product.product_origin,
-                            storeId = product.store_id,
-                            storeName = product.store_name,
-                            productImageUrl = product.product_image ?: ""
-                        ) { response ->
-                            if (response.success) {
-                                Toast.makeText(context, "Failed to add to Basket!", Toast.LENGTH_SHORT).show()
-                            } else {
-                                showDialog.value = true
+                Button(
+                    onClick = {
+                        if (selectedWeight.isNotEmpty()) {
+                            cartController.addToCart(
+                                productId = product.id,
+                                productName = product.product_name,
+                                productPrice = product.product_price.toDoubleOrNull() ?: 0.0,
+                                productQuantity = quantity,
+                                productPortion = selectedWeight,
+                                productOrigin = product.product_origin,
+                                storeId = product.store_id,
+                                storeName = product.store_name,
+                                productImageUrl = product.product_image ?: ""
+                            ) { response ->
+                                if (response.success) {
+                                    Toast.makeText(context, "Failed to add to Basket!", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    showDialog.value = true
+                                }
                             }
                         }
-                    }
-                },
-                enabled = selectedWeight.isNotEmpty(),
-                shape = RoundedCornerShape(30.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (selectedWeight.isEmpty()) Color.Gray else Color.White,
-                    contentColor = Color.Black
-                ),
-                modifier = Modifier
-                    .height(58.dp)
-                    .width(205.dp)
-                    .align(Alignment.CenterEnd)
-            ) {
-                Text(
-                    text = "Add to Basket",
-                    color = if (selectedWeight.isEmpty()) Color.White else Color.Black,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
-                )
-            }
+                    },
+                    enabled = selectedWeight.isNotEmpty(),
+                    shape = RoundedCornerShape(30.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (selectedWeight.isEmpty()) Color.Gray else Color.White,
+                        contentColor = Color.Black
+                    ),
+                    modifier = Modifier
+                        .height(58.dp)
+                        .width(205.dp)
+                        .align(Alignment.CenterEnd)
+                ) {
+                    Text(
+                        text = "Add to Basket",
+                        color = if (selectedWeight.isEmpty()) Color.White else Color.Black,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        fontFamily = poppinsFontFamily
+                    )
+                }
 
                 if (showDialog.value) {
                     Popup(
@@ -381,8 +409,8 @@ fun ProductScreen(
                                         scaleY = scale.value,
                                         alpha = alpha.value
                                     )
-                                    .shadow(12.dp, shape = RoundedCornerShape(12.dp))
-                                    .background(Color.White, shape = RoundedCornerShape(12.dp))
+                                    .shadow(12.dp, shape = RoundedCornerShape(20.dp))
+                                    .background(Color.White, shape = RoundedCornerShape(20.dp))
                                     .padding(horizontal = 30.dp, vertical = 20.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
@@ -390,12 +418,13 @@ fun ProductScreen(
                                     text = "Added to Basket!",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 20.sp,
+                                    fontFamily = poppinsFontFamily,
                                     color = Color.Black
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
 
                                 Image(
-                                    painter = painterResource(id = R.drawable.verified), // IMAGE
+                                    painter = painterResource(id = R.drawable.checkmark), // IMAGE
                                     contentDescription = "Checkmark",
                                     modifier = Modifier.size(60.dp)
                                 )

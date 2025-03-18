@@ -4,12 +4,15 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,21 +39,26 @@ fun ForgotPasswordScreen(navController: NavController) {
             .fillMaxSize()
             .background(Color.White)
     ) {
-        Spacer(modifier = Modifier.height(50.dp))
-
-        Text(
-            text = "< Back",
-            fontSize = 14.sp,
-            color = Color.Black,
-            fontWeight = FontWeight.SemiBold,
-            fontFamily = poppinsFontFamily,
+        Box(
             modifier = Modifier
-                .padding(start = 20.dp)
-                .clickable { navController.popBackStack() }
-        )
-
-        Spacer(modifier = Modifier.height(70.dp))
-
+                .fillMaxWidth(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier
+                    .padding(top = 60.dp, start = 25.dp)
+                    .align(Alignment.TopStart)
+                    .size(40.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.back),
+                    contentDescription = "Back",
+                    tint = Color.Black
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(20.dp))
 
         Column (
             modifier = Modifier.fillMaxWidth(),
@@ -59,7 +67,7 @@ fun ForgotPasswordScreen(navController: NavController) {
             Image(
                 painter = painterResource(id = R.drawable.forgotpassword_img),
                 contentDescription = "Reset Password",
-                modifier = Modifier.height(181.dp),
+                modifier = Modifier.height(200.dp),
             )
         }
 

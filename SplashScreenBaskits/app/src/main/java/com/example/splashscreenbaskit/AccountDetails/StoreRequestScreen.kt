@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.example.splashscreenbaskit.R
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.splashscreenbaskit.api.ApiService
 import com.example.splashscreenbaskit.controller.StoreRequestController
 import kotlinx.coroutines.launch
@@ -39,6 +40,12 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+
+@Preview(showBackground = true)
+@Composable
+fun StoreRequestPreview() {
+    StoreRequestScreen(navController = rememberNavController())
+}
 
 @Composable
 fun StoreRequestScreen(navController: NavController) {
@@ -138,19 +145,20 @@ fun ShopInformationScreen(
             .fillMaxSize()
             .background(Color.White),
 
-    ) {
-        Spacer(modifier = Modifier.height(50.dp))
-
-        Text(
-            text = "< Back",
-            fontSize = 15.sp,
-            color = Color.Black,
-            fontWeight = FontWeight.SemiBold,
-            fontFamily = poppinsFontFamily,
+        ) {
+        IconButton(
+            onClick = { onBack() },
             modifier = Modifier
-                .padding(start = 30.dp)
-                .clickable { onBack() }
-        )
+                .padding(top = 60.dp, start = 25.dp)
+                .size(35.dp)
+        ) {
+            Icon(
+                modifier = Modifier.size(35.dp),
+                painter = painterResource(id = R.drawable.back),
+                contentDescription = "Back",
+                tint = Color.Black
+            )
+        }
 
         Spacer(modifier = Modifier.height(40.dp))
 

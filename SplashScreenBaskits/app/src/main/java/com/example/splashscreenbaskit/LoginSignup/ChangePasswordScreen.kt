@@ -5,11 +5,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,35 +29,43 @@ import androidx.compose.ui.text.input.VisualTransformation
 @Preview(showBackground = true)
 @Composable
 fun ChangePreview() {
-   ChangePasswordScreen(navController = rememberNavController())
+    ChangePasswordScreen(navController = rememberNavController())
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangePasswordScreen(navController: NavController) {
-    var newPass by remember { mutableStateOf("") }
-    var confirmPass by remember { mutableStateOf("") }
-    var newPassVisible by remember { mutableStateOf(false) }
-    var confirmPassVisible by remember { mutableStateOf(false) }
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    //var PasswordError = remember { mutableStateOf("") }
+    var newpasswordVisible by remember { mutableStateOf(false) }
+    var confirmpasswordVisible by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-        Spacer(modifier = Modifier.height(50.dp))
-
-        Text(
-            text = "< Back",
-            fontSize = 14.sp,
-            color = Color.Black,
-            fontWeight = FontWeight.SemiBold,
-            fontFamily = poppinsFontFamily,
+        Box(
             modifier = Modifier
-                .padding(start = 20.dp)
-                .clickable { navController.popBackStack() }
-        )
+                .fillMaxWidth(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier
+                    .padding(top = 60.dp, start = 25.dp)
+                    .align(Alignment.TopStart)
+                    .size(40.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.back),
+                    contentDescription = "Back",
+                    tint = Color.Black
+                )
+            }
+        }
 
-        Spacer(modifier = Modifier.height(60.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
 
         Column (
@@ -63,7 +75,7 @@ fun ChangePasswordScreen(navController: NavController) {
             Image(
                 painter = painterResource(id = R.drawable.changepassword_img),
                 contentDescription = "Reset Password",
-                modifier = Modifier.height(199.dp),
+                modifier = Modifier.height(210.dp),
             )
         }
 
@@ -86,9 +98,9 @@ fun ChangePasswordScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(20.dp))
 
             OutlinedTextField(
-                value = newPass,
-                onValueChange = { newPass = it },
-                label = { Text("N Password",
+                value = newPassword,
+                onValueChange = { newPassword = it },
+                label = { Text("New Password",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Normal,
                     fontFamily = poppinsFontFamily,
@@ -96,14 +108,13 @@ fun ChangePasswordScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 shape = RoundedCornerShape(10.dp),
-                visualTransformation = if (newPassVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (newpasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    IconButton(onClick = { newPassVisible = !newPassVisible }) {
-                        Image(
-                            painter = painterResource(
-                                id = if (newPassVisible) R.drawable.open else R.drawable.close
-                            ),
-                            contentDescription = "Toggle password visibility"
+                    IconButton(onClick = { newpasswordVisible = !newpasswordVisible }) {
+                        Icon(
+                            imageVector = if (newpasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                            contentDescription = if (newpasswordVisible) "Hide Password" else "Show Password",
+                            //tint = if (PasswordError.value.isNotEmpty()) Color.Red else Color.Gray
                         )
                     }
                 },
@@ -112,10 +123,18 @@ fun ChangePasswordScreen(navController: NavController) {
                     unfocusedBorderColor = Color.Gray
                 )
             )
+//            if (PasswordError.value.isNotEmpty()) {
+//                Text(PasswordError.value,
+//                    color = Color.Red,
+//                    fontSize = 12.sp,
+//                    fontFamily = poppinsFontFamily,
+//                    fontWeight = FontWeight.Normal
+//                )
+//            }
 
             OutlinedTextField(
-                value = confirmPass,
-                onValueChange = { confirmPass = it },
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
                 label = { Text("Confirm Password",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Normal,
@@ -124,14 +143,13 @@ fun ChangePasswordScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 shape = RoundedCornerShape(10.dp),
-                visualTransformation = if (confirmPassVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (confirmpasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    IconButton(onClick = { confirmPassVisible = !confirmPassVisible }) {
-                        Image(
-                            painter = painterResource(
-                                id = if (confirmPassVisible) R.drawable.open else R.drawable.close
-                            ),
-                            contentDescription = "Toggle password visibility"
+                    IconButton(onClick = { confirmpasswordVisible = !confirmpasswordVisible }) {
+                        Icon(
+                            imageVector = if (confirmpasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                            contentDescription = if (confirmpasswordVisible) "Hide Password" else "Show Password",
+                            //tint = if (PasswordError.value.isNotEmpty()) Red else Color.Gray
                         )
                     }
                 },
@@ -140,6 +158,14 @@ fun ChangePasswordScreen(navController: NavController) {
                     unfocusedBorderColor = Color.Gray
                 )
             )
+//            if (PasswordError.value.isNotEmpty()) {
+//                Text(PasswordError.value,
+//                    color = Color.Red,
+//                    fontSize = 12.sp,
+//                    fontFamily = poppinsFontFamily,
+//                    fontWeight = FontWeight.Normal
+//                )
+//            }
 
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -161,7 +187,7 @@ fun ChangePasswordScreen(navController: NavController) {
             ) {
                 Button(
                     onClick = { navController.navigate("Reset") },
-                    enabled = newPass.isNotBlank() && confirmPass.isNotBlank(),
+                    enabled = newPassword.isNotBlank() && confirmPassword.isNotBlank(),
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(

@@ -88,7 +88,7 @@ data class CartItem(
     val product_name: String,
     val product_price: Double,
     val product_quantity: Int,
-    val product_portion: String?,
+    val product_portion: String,
     val product_origin: String?,
     val store_id: Int,
     val store_name: String,

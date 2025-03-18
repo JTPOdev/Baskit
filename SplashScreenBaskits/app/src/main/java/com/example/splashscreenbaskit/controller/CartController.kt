@@ -10,6 +10,9 @@ import com.example.splashscreenbaskit.api.ApiService
 import com.example.splashscreenbaskit.api.TokenManager
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.HttpException
@@ -79,13 +82,7 @@ class CartController(
 
                 if (response.isSuccessful) {
                     val cartList = response.body()
-                    if (!cartList.isNullOrEmpty()) {
-                        saveCartLocally(cartList)
-                        onResult(true, null, cartList)
-                    } else {
-                        Log.e("CartController", "Cart is empty")
-                        onResult(false, "No items in cart", null)
-                    }
+                    onResult(true, null, cartList ?: emptyList())
                 } else {
                     val errorBody = response.errorBody()?.string()
                     Log.e("CartController", "API Error: $errorBody")
@@ -96,7 +93,7 @@ class CartController(
                 onResult(false, "Server error: ${e.message}", null)
             } catch (e: Exception) {
                 Log.e("CartController", "Exception: ${e.localizedMessage}")
-                onResult(true, "", null)
+                onResult(false, "Unexpected error: ${e.localizedMessage}", null)
             }
         }
     }
@@ -106,5 +103,77 @@ class CartController(
         val json = Gson().toJson(cartList)
         prefs.putString("cart_data", json)
         prefs.apply()
+    }
+
+
+    fun updateCart(
+        productId: Int,
+        newQuantity: Int,
+        portion: String,
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        lifecycleOwner.lifecycleScope.launch {
+            val accessToken = TokenManager.getToken()
+            if (accessToken.isNullOrEmpty()) {
+                onResult(false, "No access token found")
+                return@launch
+            }
+
+            // Convert data to JSON request body
+            val jsonObject = JSONObject().apply {
+                put("product_id", productId)
+                put("product_quantity", newQuantity)
+                put("product_portion", portion)
+            }
+            val requestBody = jsonObject.toString().toRequestBody("application/json".toMediaTypeOrNull())
+
+            try {
+                val response = apiService.updateCart("Bearer $accessToken", requestBody)
+                if (response.isSuccessful) {
+                    onResult(true, null)
+                } else {
+                    val errorMessage = response.errorBody()?.string() ?: "Failed to update cart"
+                    Log.e("CartController", "API Error: $errorMessage")
+                    onResult(false, errorMessage)
+                }
+            } catch (e: Exception) {
+                onResult(false, e.localizedMessage)
+            }
+        }
+    }
+
+    fun removeFromCart(
+        productId: Int,
+        portion: String,
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        lifecycleOwner.lifecycleScope.launch {
+            val accessToken = TokenManager.getToken()
+            if (accessToken.isNullOrEmpty()) {
+                onResult(false, "No access token found")
+                return@launch
+            }
+
+            // Convert data to JSON request body
+            val jsonObject = JSONObject().apply {
+                put("product_id", productId)
+                put("product_portion", portion)
+            }
+            val requestBody = jsonObject.toString().toRequestBody("application/json".toMediaTypeOrNull())
+            Log.d("CartController", "Sending JSON: ${jsonObject.toString()}")
+
+            try {
+                val response = apiService.removeFromCart("Bearer $accessToken", requestBody)
+                if (response.isSuccessful) {
+                    onResult(true, null)
+                } else {
+                    val errorMessage = response.errorBody()?.string() ?: "Failed to update cart"
+                    Log.e("CartController", "API Error: $errorMessage")
+                    onResult(false, errorMessage)
+                }
+            } catch (e: Exception) {
+                onResult(false, e.localizedMessage)
+            }
+        }
     }
 }

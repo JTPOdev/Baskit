@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,8 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import com.example.splashscreenbaskit.controller.CartController
 
@@ -121,139 +118,207 @@ fun CartScreen(cartController: CartController, navController: NavController) {
                     )
                 }
             } else {
-                LazyColumn {
+                LazyColumn(
+                    modifier = Modifier.weight(1f)
+                ) {
                     items(cartItems) { item ->
                         CartItemView(
                             item = item,
-                            onRemoveItem = { /* Call API to remove item */ },
-                            onIncreaseQuantity = { /* Call API to increase quantity */ },
-                            onDecreaseQuantity = { /* Call API to decrease quantity */ }
+                            onRemoveItem = {
+                                cartController.removeFromCart(
+                                    item.product_id,
+                                    item.product_portion
+                                ) { success, message ->
+                                    if (success) {
+                                        cartItems =
+                                            cartItems.filter { it.product_id != item.product_id || it.product_portion != item.product_portion }
+                                    } else {
+                                        errorMessage = message
+                                    }
+                                }
+                            },
+                            onIncreaseQuantity = {
+                                cartController.updateCart(
+                                    item.product_id,
+                                    item.product_quantity + 1,
+                                    item.product_portion
+                                ) { success, message ->
+                                    println("Updating cart: product_id=${item.product_id}, product_quantity=${item.product_quantity}, product_portion=${item.product_portion}")
+                                    if (success) {
+                                        cartItems = cartItems.map {
+                                            if (it.product_id == item.product_id && it.product_portion == item.product_portion)
+                                                it.copy(product_quantity = it.product_quantity + 1)
+                                            else it
+                                        }.toList() // Force recomposition
+                                    } else {
+                                        errorMessage = message
+                                    }
+                                }
+                            },
+                            onDecreaseQuantity = {
+                                if (item.product_quantity > 1) {
+                                    cartController.updateCart(
+                                        item.product_id,
+                                        item.product_quantity - 1,
+                                        item.product_portion
+                                    ) { success, message ->
+                                        println("Updating cart: product_id=${item.product_id}, product_quantity=${item.product_quantity}, product_portion=${item.product_portion}")
+                                        if (success) {
+                                            cartItems = cartItems.map {
+                                                if (it.product_id == item.product_id && it.product_portion == item.product_portion) it.copy(
+                                                    product_quantity = it.product_quantity - 1
+                                                )
+                                                else it
+                                            }
+                                        } else {
+                                            errorMessage = message
+                                        }
+                                    }
+                                } else {
+                                    cartController.removeFromCart(
+                                        item.product_id,
+                                        item.product_portion
+                                    ) { success, message ->
+                                        println("Updating cart: product_id=${item.product_id}, product_quantity=${item.product_quantity}, product_portion=${item.product_portion}")
+                                        if (success) {
+                                            cartItems =
+                                                cartItems.filter { it.product_id != item.product_id || it.product_portion != item.product_portion }
+                                        } else {
+                                            errorMessage = message
+                                        }
+                                    }
+                                }
+                            }
                         )
                     }
                 }
             }
         }
 
-        // Checkout Section
-        if (cartItems.isNotEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(12.dp)
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(Color.Gray.copy(alpha = 0.5f), Color.Transparent)
+            // Checkout Section
+            if (cartItems.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(12.dp)
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(Color.Gray.copy(alpha = 0.5f), Color.Transparent)
+                            )
                         )
-                    )
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val totalPrice = cartItems.sumOf { it.product_price * it.product_quantity }
-                val totalItems = cartItems.sumOf { it.product_quantity }
-
-                Text(
-                    text = "ITEMS: $totalItems",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
                 )
-                Text(
-                    text = "Total: ₱${"%.2f".format(totalPrice)}",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF6CBF5F)
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Button(
-                    onClick = { navController.navigate("CheckoutScreen") },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1d7151)),
-                    modifier = Modifier.fillMaxWidth(0.9f)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(text = "Checkout", color = Color.White, fontSize = 20.sp)
-                }
-            }
-        }
-    }
-}
+                    val totalPrice = cartItems.sumOf { it.product_price * it.product_quantity }
+                    val totalItems = cartItems.sumOf { it.product_quantity }
 
-@Composable
-fun CartItemView(
-    item: CartItem,
-    onRemoveItem: () -> Unit,
-    onIncreaseQuantity: () -> Unit,
-    onDecreaseQuantity: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(6.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Column(modifier = Modifier.padding(10.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // Load image using Coil
-                Image(
-                    painter = rememberImagePainter(item.product_image ?: "default_image_url"),
-                    contentDescription = "Product Image",
-                    modifier = Modifier.size(80.dp)
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = item.product_name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     Text(
-                        text = item.product_portion ?: "N/A",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.Gray
+                        text = "ITEMS: $totalItems",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = "₱${"%.2f".format(item.product_price)}",
-                        fontSize = 16.sp,
+                        text = "Total: ₱${"%.2f".format(totalPrice)}",
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF6CBF5F)
                     )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Button(
+                        onClick = { navController.navigate("CheckoutScreen") },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1d7151)),
+                        modifier = Modifier.fillMaxWidth(0.9f)
+                    ) {
+                        Text(text = "Checkout", color = Color.White, fontSize = 20.sp)
+                    }
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    IconButton(onClick = onRemoveItem) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete Item",
-                            tint = Color.Red
+            }
+        }
+    }
+
+    @Composable
+    fun CartItemView(
+        item: CartItem,
+        onRemoveItem: () -> Unit,
+        onIncreaseQuantity: () -> Unit,
+        onDecreaseQuantity: () -> Unit
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            elevation = CardDefaults.cardElevation(6.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Column(modifier = Modifier.padding(10.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Load image using Coil
+                    Image(
+                        painter = rememberImagePainter(item.product_image ?: "default_image_url"),
+                        contentDescription = "Product Image",
+                        modifier = Modifier.size(80.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = item.product_name,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = item.product_portion ?: "N/A",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.Gray
+                        )
+                        Text(
+                            text = "₱${"%.2f".format(item.product_price)}",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF6CBF5F)
                         )
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = onDecreaseQuantity) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        IconButton(onClick = onRemoveItem) {
                             Icon(
-                                painter = painterResource(id = R.drawable.minus),
-                                contentDescription = "Decrease Quantity",
-                                tint = Color.Black,
-                                modifier = Modifier.size(15.dp)
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete Item",
+                                tint = Color.Red
                             )
                         }
-                        Text(text = item.product_quantity.toString(), fontSize = 18.sp)
-                        IconButton(onClick = onIncreaseQuantity) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.add),
-                                contentDescription = "Increase Quantity",
-                                tint = Color.Black,
-                                modifier = Modifier.size(15.dp)
-                            )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = onDecreaseQuantity) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.minus),
+                                    contentDescription = "Decrease Quantity",
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                            }
+                            Text(text = item.product_quantity.toString(), fontSize = 18.sp)
+                            IconButton(onClick = onIncreaseQuantity) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.add),
+                                    contentDescription = "Increase Quantity",
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                            }
                         }
                     }
                 }
             }
         }
     }
-}

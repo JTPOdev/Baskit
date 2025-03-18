@@ -39,19 +39,17 @@ class CartController
     // --------- VIEW CART BASICALLY ETO MAG DIDISPLAY SA CART -------- //
     public static function viewCart($userId, $conn)
     {
+        header('Content-Type: application/json');
+
         if (!$userId) {
-            header('HTTP/1.1 400 Bad Request');
-            return ['message' => 'User ID is required'];
+            echo json_encode([]);
+            exit;
         }
 
         $cart = Cart::getUserCart($userId, $conn);
-        if ($cart) {
-            header('HTTP/1.1 200 OK');
-            return $cart;
-        }
 
-        header('HTTP/1.1 404 Not Found');
-        return ['message' => 'Cart is empty or user not found'];
+        echo json_encode($cart);
+        exit;
     }
 
     // --------- UPDATE CART, QUANTITY TAPOS ANONG PORTION PERO QUANTITY LANG SA BACKEND NA NG APP YUNG PORTION -------- //

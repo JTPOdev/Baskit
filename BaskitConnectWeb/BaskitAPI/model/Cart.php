@@ -54,25 +54,21 @@ class Cart
     }
     
     // --------- GET USER CART BASICALLY KUNIN LAHAT NG LAMAN NG CART NG SPECIFIC USER -------- //
-    public static function getUserCart($userId, $conn)
-    {
-        $sql = "SELECT product_id, product_name, product_price, product_quantity, product_portion, product_origin, store_id, store_name, product_image FROM cart WHERE user_id = ?";
-        
-        if ($stmt = $conn->prepare($sql)) {
-            $stmt->bind_param("i", $userId);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $cartItems = $result->fetch_all(MYSQLI_ASSOC);
-            $stmt->close();
-            
-            if (empty($cartItems)) {
-                return ['message' => 'Your Cart is Empty.'];
-            }
-            return $cartItems;
-        } else {
-            return ['message' => 'Failed to prepare statement.'];
-        }
-    }
+public static function getUserCart($userId, $conn)
+{
+    $sql = "SELECT product_id, product_name, product_price, product_quantity, product_portion, product_origin, store_id, store_name, product_image FROM cart WHERE user_id = ?";
+
+    if ($stmt = $conn->prepare($sql)) {
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $cartItems = $result->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+        return $cartItems ?: [];
+    } 
+    return [];
+}
 
     // --------- UPDATE CART -------- //
     public static function updateCart($userId, $productId, $quantity, $portion, $conn)

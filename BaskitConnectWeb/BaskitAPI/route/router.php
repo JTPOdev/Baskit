@@ -335,9 +335,18 @@ $router->put('/cart/update', function() use ($conn) {
 
 $router->delete('/cart/remove', function() use ($conn) {
     $authUserId = AuthMiddleware::checkAuth();
+    
+    // Read JSON body
     $data = json_decode(file_get_contents("php://input"), true);
+
+    if (!isset($data['product_id'], $data['product_portion'])) {
+        header('HTTP/1.1 400 Bad Request');
+        echo json_encode(['message' => 'Missing required fields: product_id or product_portion']);
+        exit;
+    }
+
     echo json_encode(CartController::removeFromCart($authUserId, $data, $conn));
-},false, true);
+}, false, true);
 
 
 // ---------- ORDERS --------- //

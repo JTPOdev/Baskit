@@ -39,12 +39,6 @@ import com.example.splashscreenbaskit.R
 import com.example.splashscreenbaskit.controller.LoginController
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
 
-//@Preview(showBackground = true)
-//@Composable
-//fun LoginActivity() {
-//    LoginActivity(navController = rememberNavController())
-//}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginActivity(navController: NavController) {

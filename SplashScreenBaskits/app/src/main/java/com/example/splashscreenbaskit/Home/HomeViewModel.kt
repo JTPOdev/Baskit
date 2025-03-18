@@ -14,8 +14,7 @@ class HomeViewModel : ViewModel() {
         private set
     var calasiaoVendors by mutableStateOf<List<Vendor>>(emptyList())
         private set
-//    var products by mutableStateOf<List<Product>>(emptyList())
-//        private set
+
     var isLoading by mutableStateOf(false)
         private set
 
@@ -46,16 +45,4 @@ class HomeViewModel : ViewModel() {
             }
         }
     }
-
-//    fun fetchProducts(category: String) {
-//        viewModelScope.launch {
-//            isLoading = true/            try {
-//                products = apiService.getProductsByCategory(category.lowercase())
-//            } catch (e: Exception) {
-//                Log.e("HomeViewModel", "Error fetching products: ${e.message}")
-//            } finally {
-//                isLoading = false
-//            }
-//        }
-//    }
 }

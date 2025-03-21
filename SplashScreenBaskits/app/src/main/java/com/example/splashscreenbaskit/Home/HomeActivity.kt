@@ -1,6 +1,7 @@
 package com.example.splashscreenbaskit.Home
 
 import EditStoreScreen
+import Order
 import ProductsResponse
 import StoreResponse
 import android.util.Log
@@ -65,11 +66,10 @@ import com.example.splashscreenbaskit.Carts.CheckoutScreen
 import com.example.splashscreenbaskit.LoginSignup.*
 import com.example.splashscreenbaskit.Products.ProductScreen
 import com.example.splashscreenbaskit.R
-import com.example.splashscreenbaskit.Tagabili.CalasiaoOrders
-import com.example.splashscreenbaskit.Tagabili.DagupanOrders
 import com.example.splashscreenbaskit.Tagabili.TB_HomeContent
 import com.example.splashscreenbaskit.Tagabili.TB_OrdersContent
 import com.example.splashscreenbaskit.api.ApiService
+import com.example.splashscreenbaskit.api.TokenManager
 import com.example.splashscreenbaskit.controller.CartController
 import com.example.splashscreenbaskit.controllers.ProductByOriginController
 import com.example.splashscreenbaskit.controllers.ProductController
@@ -465,8 +465,15 @@ fun HomeScreen() {
                 composable("TB_HomeActivity") {
                     TB_HomeContent(navController)
                 }
-                composable("TB_OrdersActivity") {
-                    TB_OrdersContent(navController)
+                composable(
+                    "tb_orders/{user_id}",
+                    arguments = listOf(navArgument("user_id") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    var orders by remember { mutableStateOf<List<Order>>(emptyList()) }
+
+                    val userId = backStackEntry.arguments?.getString("user_id")?.toIntOrNull() ?: 0  // Convert String to Int safely
+
+                    TB_OrdersContent(navController, userId)
                 }
                 composable("StoreRequestScreen") {
                     StoreRequestScreen(navController)

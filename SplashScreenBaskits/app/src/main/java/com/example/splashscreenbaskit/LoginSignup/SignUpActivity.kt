@@ -208,6 +208,7 @@ fun SignUpActivity(navController: NavController)
 
             Spacer(modifier = Modifier.height(2.dp))
 
+            Column(modifier = Modifier.fillMaxWidth(0.8f)) {
             OutlinedTextField(
                 value = birthday.value,
                 onValueChange = { newValue ->
@@ -239,7 +240,7 @@ fun SignUpActivity(navController: NavController)
                     )
                 },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(0.8f),
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
                 interactionSource = remember { MutableInteractionSource() },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -258,7 +259,8 @@ fun SignUpActivity(navController: NavController)
                     fontSize = 12.sp,
                     fontFamily = poppinsFontFamily,
                     fontWeight = FontWeight.Normal,
-                    textAlign = TextAlign.Start
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.align(Alignment.Start)
                 )
             }
 
@@ -285,7 +287,7 @@ fun SignUpActivity(navController: NavController)
                     )
                 },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(0.8f),
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     cursorColor = if (userNameError.value.isNotEmpty()) Red else DarkGray,
@@ -304,7 +306,8 @@ fun SignUpActivity(navController: NavController)
                     fontSize = 12.sp,
                     fontFamily = poppinsFontFamily,
                     fontWeight = FontWeight.Normal,
-                    textAlign = TextAlign.Start
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.align(Alignment.Start)
                 )
             }
 
@@ -326,7 +329,7 @@ fun SignUpActivity(navController: NavController)
                         tint = if (contactNumberError.value.isNotEmpty()) Red else DarkGray)
                 },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(0.8f),
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     cursorColor = if (contactNumberError.value.isNotEmpty()) Red else DarkGray,
@@ -344,7 +347,8 @@ fun SignUpActivity(navController: NavController)
                     fontSize = 12.sp,
                     fontFamily = poppinsFontFamily,
                     fontWeight = FontWeight.Normal,
-                    textAlign = TextAlign.Start
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.align(Alignment.Start)
                 ) //NEW
 
             Spacer(modifier = Modifier.height(2.dp))
@@ -367,7 +371,7 @@ fun SignUpActivity(navController: NavController)
                     )
                 },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(0.8f),
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     cursorColor = if (emailError.value.isNotEmpty()) Red else DarkGray,
@@ -385,7 +389,8 @@ fun SignUpActivity(navController: NavController)
                     fontSize = 12.sp,
                     fontFamily = poppinsFontFamily,
                     fontWeight = FontWeight.Normal,
-                    textAlign = TextAlign.Start
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.align(Alignment.Start)
                 ) //NEW
 
 
@@ -421,7 +426,7 @@ fun SignUpActivity(navController: NavController)
                     }
                 },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(0.8f),
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -440,7 +445,8 @@ fun SignUpActivity(navController: NavController)
                     fontSize = 12.sp,
                     fontFamily = poppinsFontFamily,
                     fontWeight = FontWeight.Normal,
-                    textAlign = TextAlign.Start
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.align(Alignment.Start)
                 )
 
             Spacer(modifier = Modifier.height(2.dp))
@@ -473,7 +479,7 @@ fun SignUpActivity(navController: NavController)
                     }
                 },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(0.8f),
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
                 visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -491,8 +497,10 @@ fun SignUpActivity(navController: NavController)
                     fontSize = 12.sp,
                     fontFamily = poppinsFontFamily,
                     fontWeight = FontWeight.Normal,
-                    textAlign = TextAlign.Start
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.align(Alignment.Start)
                 )
+            }
 
             Spacer(modifier = Modifier.height(1.dp))
 

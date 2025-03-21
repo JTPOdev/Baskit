@@ -424,7 +424,7 @@ fun ProductScreen(
                                 Spacer(modifier = Modifier.height(12.dp))
 
                                 Image(
-                                    painter = painterResource(id = R.drawable.checkmark), // IMAGE
+                                    painter = painterResource(id = R.drawable.baskitcheckmark), // IMAGE
                                     contentDescription = "Checkmark",
                                     modifier = Modifier.size(60.dp)
                                 )

@@ -38,6 +38,9 @@ fun CheckoutScreen(cartController: CartController, navController: NavController)
     var showCodeDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
+    var isPlacingOrder by remember { mutableStateOf(false) }
+    var orderResponse by remember { mutableStateOf<String?>(null) }
+
     // Fetch cart items when screen loads
     LaunchedEffect(Unit) {
         cartController.fetchCartItems { success, message, items ->
@@ -204,12 +207,22 @@ fun CheckoutScreen(cartController: CartController, navController: NavController)
             Spacer(modifier = Modifier.height(40.dp))
 
             Button(
-                onClick = { showCodeDialog = true },
+                onClick = {
+                    isPlacingOrder = true
+                    cartController.placeOrder { success, message ->
+                        isPlacingOrder = false
+                        orderResponse = message
+                        if (success) {
+                            showCodeDialog = true
+                        }
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF83BD70)),
-                modifier = Modifier.width(205.dp).height(58.dp)
+                modifier = Modifier.width(205.dp).height(58.dp),
+                enabled = !isPlacingOrder
             ) {
                 Text(
-                    text = "PAY IN STORE",
+                    text = if (isPlacingOrder) "Placing Order..." else "PAY IN STORE",
                     color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
@@ -217,13 +230,21 @@ fun CheckoutScreen(cartController: CartController, navController: NavController)
                 )
             }
         }
-    }
 
-    if (showCodeDialog) {
-        YourCodeDialog(
-            onDismiss = { showCodeDialog = false },
-            onSaveImage = { /* Handle saving */ }
-        )
+        if (showCodeDialog) {
+            YourCodeDialog(
+                onDismiss = { showCodeDialog = false },
+                onSaveImage = { /* Handle saving */ }
+            )
+        }
+
+        orderResponse?.let { response ->
+            LaunchedEffect(response) {
+                if (!response.contains("success", true)) {
+                    Log.e("CheckoutScreen", response)
+                }
+            }
+        }
     }
 }
 

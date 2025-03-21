@@ -5,11 +5,11 @@ class OrderController{
 
     public static function placeOrder($userId, $conn) {
         $cartItems = Order::getCartItems($userId, $conn);
-
+    
         if (empty($cartItems)) {
             return ['message' => 'Cart is empty'];
         }
-
+    
         $orderIds = [];
         foreach ($cartItems as $item) {
             $orderId = Order::createOrder($userId, $item, $conn);
@@ -17,13 +17,13 @@ class OrderController{
                 $orderIds[] = $orderId;
             }
         }
-        Order::clearCart($userId, $conn);
-
+    
         return [
             'message' => 'Order placed successfully',
             'order_ids' => $orderIds
         ];
     }
+    
 
     public static function acceptAllOrders($tagabiliId, $orderCode, $conn) {
 

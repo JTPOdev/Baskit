@@ -1,5 +1,6 @@
 package com.example.splashscreenbaskit.Tagabili
 
+import Order
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -30,117 +31,91 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.splashscreenbaskit.R
+import com.example.splashscreenbaskit.controllers.OrderController
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-@Preview(showBackground = true)
-@Composable
-fun TB_OrdersActivityPreview() {
-    TB_OrdersContent(navController = rememberNavController())
-}
 
 @Composable
-fun TB_OrdersContent(navController: NavController) {
+fun TB_OrdersContent(navController: NavController, userId: Int) {
     val scrollState = rememberScrollState()
+    val orders = remember { mutableStateOf<List<Order>?>(null) }
+    val isLoading = remember { mutableStateOf(true) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
+
+    // Fetch user orders in LaunchedEffect
+    LaunchedEffect(userId) {
+        isLoading.value = true
+        val fetchedOrders = withContext(Dispatchers.IO) {
+            OrderController(lifecycleOwner, context).fetchUserOrders(userId)
+        }
+        orders.value = fetchedOrders
+        isLoading.value = false
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color.White
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(scrollState)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-                    .background (Color.White)
-            ){
-                IconButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier
-                        .padding(top = 70.dp, start = 25.dp)
-                        .size(35.dp)
-                ) {
-                    Icon(
-                        modifier = Modifier.size(20.dp),
-                        painter = painterResource(id = R.drawable.back),
-                        contentDescription = "Back",
-                        tint = Color.Black
-                    )
-                }
-
-                Text(
-                    text = "ORDER\nSUMMARY",
-                    color = Color.Black,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = poppinsFontFamily,
-                    modifier = Modifier.padding(top = 140.dp, start = 40.dp)
-                )
-
-                Image(
-                    painter = painterResource(id = R.drawable.orders_img),
-                    contentDescription = "orders",
-                    modifier = Modifier
-                        .padding(start = 210.dp, top = 60.dp)
-                        .height(157.dp)
-                        .width(160.dp)
-                        .clip(RoundedCornerShape(topStart = 5.dp, topEnd = 20.dp, bottomStart = 5.dp, bottomEnd = 20.dp))
-                )
-
-            }
-            //Spacer(modifier = Modifier.height(45.dp))
-
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp))
-                .background (Color(0xFFE0F4DE))
-            ){
-                Column (
-                    modifier = Modifier.fillMaxWidth() .padding(30.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ){
-                    TB_CustomerInfo ()
-
-                    Spacer(modifier = Modifier.height(30.dp))
-
-                    TB_OrderItems()
+            if (isLoading.value) {
+                Text("Loading...", modifier = Modifier.padding(16.dp))
+            } else if (orders.value.isNullOrEmpty()) {
+                Text("No orders found", modifier = Modifier.padding(16.dp), color = Color.Gray)
+            } else {
+                orders.value?.let { orderList ->
+                    // Extract customer information from the first order
+                    val customer = orderList.firstOrNull()
+                    if (customer != null) {
+                        TB_CustomerInfo(
+                            name = customer.firstname,
+                            branch = customer.product_origin.lowercase().replaceFirstChar { it.uppercase() },
+                            contactNumber = customer.mobile_number
+                        )
+                    }
+                    TB_OrderItems(orderList)
                 }
             }
         }
-
-
     }
 }
 
-@Composable
-fun TB_CustomerInfo (){
 
+@Composable
+fun TB_CustomerInfo(name: String, branch: String, contactNumber: String) {
     Box(
         modifier = Modifier
             .background(Color.White, shape = RoundedCornerShape(30.dp))
             .height(152.dp)
             .width(339.dp)
             .padding(30.dp)
-    ){
+    ) {
         Column {
             Row {
                 Text(
@@ -152,7 +127,7 @@ fun TB_CustomerInfo (){
                 )
 
                 Text(
-                    text = "Jorose",
+                    text = name,
                     color = Color.Black,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal,
@@ -172,7 +147,7 @@ fun TB_CustomerInfo (){
                 )
 
                 Text(
-                    text = "Dagupan",
+                    text = branch,
                     color = Color.Black,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal,
@@ -193,7 +168,7 @@ fun TB_CustomerInfo (){
                 )
 
                 Text(
-                    text = "0900-000-0000",
+                    text = contactNumber,
                     color = Color.Black,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal,
@@ -206,13 +181,19 @@ fun TB_CustomerInfo (){
 }
 
 @Composable
-fun TB_OrderItems(){
-    Column (
+fun TB_OrderItems(orders: List<Order>) {
+    val groupedOrders = orders.groupBy { it.store_name }
+
+    // Compute total price
+    val totalPrice = orders.sumOf { it.product_price.toDouble() * it.product_quantity }
+
+    Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
-    ){
-        Text(text = "ITEMS",
+    ) {
+        Text(
+            text = "ITEMS",
             color = Color.Black,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
@@ -224,135 +205,140 @@ fun TB_OrderItems(){
                 .fillMaxWidth()
                 .fillMaxHeight()
                 .padding(top = 8.dp)
-                .background (Color.White, shape = RoundedCornerShape(30.dp))
-        ){
-            Column (
-                modifier = Modifier.fillMaxWidth() .padding(30.dp),
+                .background(Color.White, shape = RoundedCornerShape(30.dp))
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(30.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
-            ){
-                Box(
-                    modifier = Modifier
-                        .height(30.dp)
-                        .width(193.dp)
-                        .background(Color(0xFFD9D9D9), shape = RoundedCornerShape(20.dp)),
-                    contentAlignment = Alignment.Center
-                ){
-                    Text(
-                        text = "JOROSE STORE",
+            ) {
+                groupedOrders.forEach { (storeName, storeOrders) ->
+                    // Display Store Name
+                    Box(
+                        modifier = Modifier
+                            .height(40.dp)
+                            .width(250.dp)
+                            .background(Color(0xFFD9D9D9), shape = RoundedCornerShape(20.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = storeName,
+                            color = Color.Black,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = poppinsFontFamily
+                        )
+                    }
+
+                    // Display Products under this Store
+                    storeOrders.forEach { order ->
+                        ProductDetails(order)
+                    }
+
+                    // Store Separator
+                    Divider(
                         color = Color.Black,
+                        thickness = 0.8.dp,
+                        modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
+                    )
+                }
+            }
+        }
+
+        // Display Total Price
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Total",
+                color = Color.Black,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.ExtraBold,
+                fontFamily = poppinsFontFamily
+            )
+
+            Spacer(modifier = Modifier.width(120.dp))
+
+            Text(
+                text = "₱ ${"%,.2f".format(totalPrice)}", // Format to 2 decimal places
+                color = Color.Black,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.ExtraBold,
+                fontFamily = poppinsFontFamily
+            )
+        }
+        Spacer(modifier = Modifier.height(40.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(
+                modifier = Modifier
+                    .height(50.dp)
+                    .width(147.dp),
+                shape = RoundedCornerShape(10.dp),
+                onClick = {},
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE22727)),
+                enabled = true
+            ) {
+                Row {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = "Decline",
+                        tint = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Decline",
+                        color = Color.White,
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Medium,
                         fontFamily = poppinsFontFamily
                     )
                 }
-
-                ProductDetails()
             }
-        }
 
-        Column(
-            modifier = Modifier.width(320.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Divider(
-                color = Color.Black,
-                thickness = 0.8.dp,
-                modifier = Modifier.padding(top = 30.dp, bottom = 20.dp)
-            )
-        }
-    }
+            Spacer(modifier = Modifier.width(25.dp))
 
-    Row (
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
-    ){
-        Text(text = "Total",
-            color = Color.Black,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.ExtraBold,
-            fontFamily = poppinsFontFamily
-        )
-
-        Spacer(modifier = Modifier.width(120.dp))
-
-        Text(text = "₱ 00.00",
-            color = Color.Black,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.ExtraBold,
-            fontFamily = poppinsFontFamily
-        )
-    }
-    Spacer(modifier = Modifier.height(40.dp))
-
-    Row (
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
-    ){
-        Button(
-            modifier = Modifier
-                .height(50.dp)
-                .width(147.dp),
-            shape = RoundedCornerShape(10.dp),
-            onClick = {},
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE22727)),
-            enabled = true
-        ) {
-            Row {
-                Icon(
-                    Icons.Default.Close,
-                    contentDescription = "Decline",
-                    tint = Color.White
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Decline",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = poppinsFontFamily
-                )
-            }
-        }
-
-
-        Spacer(modifier = Modifier.width(25.dp))
-
-        Button(
-            modifier = Modifier
-                .height(50.dp)
-                .width(147.dp),
-            shape = RoundedCornerShape(10.dp),
-            onClick = {},
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1d7151)),
-            enabled = true
-        ) {
-            Row {
-                Icon(
-                    Icons.Default.Done,
-                    contentDescription = "Accept",
-                    tint = Color.White
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Accept",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = poppinsFontFamily
-                )
+            Button(
+                modifier = Modifier
+                    .height(50.dp)
+                    .width(147.dp),
+                shape = RoundedCornerShape(10.dp),
+                onClick = {},
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1d7151)),
+                enabled = true
+            ) {
+                Row {
+                    Icon(
+                        Icons.Default.Done,
+                        contentDescription = "Accept",
+                        tint = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Accept",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = poppinsFontFamily
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun ProductDetails(){
-    Row (modifier = Modifier.padding(top = 20.dp)
-    ){
+fun ProductDetails(order: Order) {
+    Row(modifier = Modifier.padding(top = 20.dp)) {
         Column {
-            Text(text = "Product",
+            Text(
+                text = order.product_name,
                 color = Color.Black,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
@@ -360,14 +346,16 @@ fun ProductDetails(){
             )
 
             Row {
-                Text(text = "1 pc",
+                Text(
+                    text = "${order.product_quantity} pc",
                     color = Color.Gray,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Normal,
                     fontFamily = poppinsFontFamily
                 )
 
-                Text(text = "Quantity:",
+                Text(
+                    text = "Quantity:",
                     color = Color.Gray,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -375,7 +363,8 @@ fun ProductDetails(){
                     modifier = Modifier.padding(start = 15.dp)
                 )
 
-                Text(text = "1",
+                Text(
+                    text = order.product_quantity.toString(),
                     color = Color.Gray,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -386,7 +375,7 @@ fun ProductDetails(){
         }
 
         Text(
-            text = "₱ 00.00",
+            text = "₱ ${order.product_price}",
             color = Color.DarkGray,
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
@@ -395,4 +384,5 @@ fun ProductDetails(){
         )
     }
 }
+
 

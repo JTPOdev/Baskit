@@ -391,6 +391,57 @@ $router->post('/order/complete', function() use ($conn) {
     echo json_encode(Order::completeOrderByCode($data['order_code'], $conn));
 }, false, true);
 
+$router->get('/orders', function() use ($conn) { 
+    
+    $userId = AuthMiddleware::checkAuth(); 
+    if (!$userId) {
+        header('HTTP/1.1 401 Unauthorized');
+        echo json_encode(['message' => 'Unauthorized']);
+        exit;
+    }   
+
+    // Get user_id from query parameter
+    if (!isset($_GET['user_id'])) {
+        header('HTTP/1.1 400 Bad Request');
+        echo json_encode(['message' => 'Missing user_id parameter']);
+        exit;
+    }
+
+    $userId = intval($_GET['user_id']); // Convert to integer for safety
+
+    // Fetch orders for the given user_id
+    $orders = Order::getUserOrders($userId, $conn);
+    
+    header('Content-Type: application/json');
+    echo json_encode(['orders' => $orders]);
+}, true);
+
+$router->get('/all/orders', function() use ($conn) {
+
+    // Validate token (no need for a specific user ID)
+    $userId = AuthMiddleware::checkAuth(); 
+    if (!$userId) {
+        header('HTTP/1.1 401 Unauthorized');
+        echo json_encode(['message' => 'Unauthorized']);
+        exit;
+    }   
+
+    // Fetch all users with their orders
+    $ordersData = Order::getAllUsersOrders($conn);
+    echo json_encode(['orders' => $ordersData]);
+}, true);
+
+
+$router->get('/orders/total/origin', function () use ($conn) {
+    $userId = AuthMiddleware::checkAuth(); 
+    if (!$userId) {
+        header('HTTP/1.1 401 Unauthorized');
+        echo json_encode(['message' => 'Unauthorized']);
+        exit;
+    }   
+    $totals = Order::getTotalOrdersByLocation($conn);
+    echo json_encode($totals);
+},true);
 
 // ---------- 404 NOT FOUND ---------- //
 $router->setNotFound(function() {

@@ -1,13 +1,17 @@
 package com.example.splashscreenbaskit
 
 import EditStoreScreen
+import Order
 import ProductsResponse
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -38,6 +42,7 @@ import com.example.splashscreenbaskit.Products.ProductScreen
 import com.example.splashscreenbaskit.Tagabili.TB_HomeContent
 import com.example.splashscreenbaskit.Tagabili.TB_OrdersContent
 import com.example.splashscreenbaskit.api.ApiService
+import com.example.splashscreenbaskit.api.TokenManager
 import com.example.splashscreenbaskit.controller.CartController
 import com.example.splashscreenbaskit.ui.theme.SplashScreenBaskitTheme
 import com.google.gson.Gson
@@ -137,9 +142,6 @@ class MainActivity : ComponentActivity() {
                     composable("TB_HomeActivity") {
                         TB_HomeContent(navController)
                     }
-                    composable("TB_OrdersActivity") {
-                        TB_OrdersContent(navController)
-                    }
                     composable("ProductDisplayScreen") {
                         ProductDisplayScreen(navController)
                     }
@@ -153,6 +155,17 @@ class MainActivity : ComponentActivity() {
 
                         val cartController = remember { CartController(lifecycleOwner, context, apiService) }
                         CheckoutScreen(cartController = cartController, navController = navController)
+                    }
+
+                    composable(
+                        "tb_orders/{user_id}",
+                        arguments = listOf(navArgument("user_id") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        var orders by remember { mutableStateOf<List<Order>>(emptyList()) }
+
+                        val userId = backStackEntry.arguments?.getString("user_id")?.toIntOrNull() ?: 0  // Convert String to Int safely
+
+                        TB_OrdersContent(navController, userId)
                     }
                 }
             }

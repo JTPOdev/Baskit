@@ -176,4 +176,29 @@ class CartController(
             }
         }
     }
+
+    fun placeOrder(
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        lifecycleOwner.lifecycleScope.launch {
+            val accessToken = TokenManager.getToken()
+            if (accessToken.isNullOrEmpty()) {
+                onResult(false, "No access token found")
+                return@launch
+            }
+
+            try {
+                val response = apiService.placeOrder("Bearer $accessToken")
+                if (response.isSuccessful) {
+                    onResult(true, "Order placed successfully")
+                } else {
+                    val errorMessage = response.errorBody()?.string() ?: "Failed to place order"
+                    Log.e("CartController", "API Error: $errorMessage")
+                    onResult(false, errorMessage)
+                }
+            } catch (e: Exception) {
+                onResult(false, "Error: ${e.localizedMessage}")
+            }
+        }
+    }
 }

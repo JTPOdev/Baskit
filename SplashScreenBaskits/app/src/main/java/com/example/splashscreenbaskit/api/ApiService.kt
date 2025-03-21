@@ -4,6 +4,9 @@ import CartItem
 import CartResponse
 import LoginRequest
 import LoginResponse
+import Order
+import OrderResponse
+import OrderResponses
 import Product
 import ProductOriginResponse
 import ProductResponse
@@ -12,6 +15,7 @@ import RegisterRequest
 import RegisterResponse
 import StoreRequestResponse
 import StoreResponse
+import TotalOrdersResponse
 import UploadImageResponse
 import UserResponse
 import com.example.splashscreenbaskit.Home.Vendor
@@ -142,7 +146,31 @@ interface ApiService {
     suspend fun getCartItems(
         @Header("Authorization") authToken: String
     ): Response<List<CartItem>>
+
+    //---------- ORDER ---------//
+    @POST("/order/place")
+    suspend fun placeOrder(
+        @Header("Authorization") token: String
+    ): Response<CartItem>
+
+    @GET("/all/orders")
+    suspend fun getOrders(
+        @Header("Authorization") accessToken: String
+    ): Response<OrderResponse>
+
+    @GET("orders/total/origin")
+    suspend fun getTotalOrdersByLocation(
+        @Header("Authorization") token: String
+    ): Response<TotalOrdersResponse>
+
+    @GET("/orders")
+    suspend fun getUserOrders(
+        @Header("Authorization") token: String,
+        @Query("user_id") userId: Int
+    ): Response<OrderResponses>
 }
+
+
 
 
 

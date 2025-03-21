@@ -85,25 +85,104 @@ class Order {
     }
     
     public static function completeOrderByCode($orderCode, $conn) {
-
-        $sql = "SELECT id FROM orders WHERE order_code = ? AND status = 'Accepted'";
+        // Fetch user_id and check if the order exists and is accepted
+        $sql = "SELECT user_id FROM orders WHERE order_code = ? AND status = 'Accepted' LIMIT 1";
         $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            return ['message' => 'SQL Error: ' . $conn->error];
+        }
+    
         $stmt->bind_param("s", $orderCode);
         $stmt->execute();
         $result = $stmt->get_result();
     
         if ($result->num_rows === 0) {
+            $stmt->close();
             return ['message' => 'Invalid order code or order not accepted'];
         }
+    
+        $row = $result->fetch_assoc();
+        $userId = $row['user_id'];
+        $stmt->close();
+    
+        // Update the order status to 'Completed'
         $sql = "UPDATE orders SET status = 'Completed' WHERE order_code = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $orderCode);
-    
-        if ($stmt->execute()) {
-            return ['message' => 'Order marked as completed'];
-        } else {
-            return ['message' => 'Failed to update order', 'error' => $stmt->error];
+        if (!$stmt) {
+            return ['message' => 'SQL Error: ' . $conn->error];
         }
+    
+        $stmt->bind_param("s", $orderCode);
+        if ($stmt->execute()) {
+            $stmt->close();
+    
+            // Clear the cart for the user since order is completed
+            return Order::clearCart($userId, $conn) 
+                ? ['message' => 'Order marked as completed and cart cleared']
+                : ['message' => 'Order marked as completed, but failed to clear cart'];
+        } else {
+            $error = $stmt->error;
+            $stmt->close();
+            return ['message' => 'Failed to update order', 'error' => $error];
+        }
+    }
+    
+
+    public static function getUserOrders($userId, $conn) {
+        $sql = "SELECT o.*, u.firstname, u.lastname, u.mobile_number 
+                FROM orders o
+                JOIN users u ON o.user_id = u.id
+                WHERE o.user_id = ?";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    
+        $orders = [];
+        while ($row = $result->fetch_assoc()) {
+            $orders[] = $row;
+        }
+    
+        // Count total orders
+        $totalOrders = count($orders);
+    
+        return [
+            'total_orders' => $totalOrders,
+            'orders' => $orders
+        ];
+    }
+
+    public static function getAllUsersOrders($conn) {
+        $sql = "SELECT u.id as user_id, u.firstname, u.lastname, u.mobile_number, 
+                       COUNT(o.id) AS total_orders, o.product_origin
+                FROM users u
+                INNER JOIN orders o ON u.id = o.user_id
+                GROUP BY u.id, o.product_origin";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    
+        $orders = [];
+        while ($row = $result->fetch_assoc()) {
+            $orders[] = $row;
+        }
+    
+        return $orders;
+    }
+
+    public static function getTotalOrdersByLocation($conn) {
+        $sql = "SELECT 
+                    COUNT(DISTINCT CASE WHEN o.product_origin = 'DAGUPAN' THEN o.user_id END) AS total_dagupan_orders,
+                    COUNT(DISTINCT CASE WHEN o.product_origin = 'CALASIAO' THEN o.user_id END) AS total_calasiao_orders
+                FROM orders o";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        return $result->fetch_assoc();
     }
 }
 ?>

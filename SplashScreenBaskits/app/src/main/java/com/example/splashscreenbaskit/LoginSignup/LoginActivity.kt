@@ -98,7 +98,7 @@ fun LoginActivity(navController: NavController) {
         Image(
             painter = painterResource(id = R.drawable.baskit_white),
             contentDescription = "Login Image",
-            modifier = Modifier.width(230.dp) .height(200.dp)
+            modifier = Modifier.width(230.dp).height(200.dp)
         )
 
         Text(
@@ -112,6 +112,7 @@ fun LoginActivity(navController: NavController) {
                 .align(Alignment.CenterHorizontally),
         )
 
+        Column(modifier = Modifier.fillMaxWidth(0.8f)) {
         OutlinedTextField(
             value = UsernameOrEmail.value,
             onValueChange = { UsernameOrEmail.value = it },
@@ -124,7 +125,7 @@ fun LoginActivity(navController: NavController) {
                 )
             },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(0.8f),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             isError = UsernameOrEmailError.value.isNotEmpty(),
             colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -137,63 +138,79 @@ fun LoginActivity(navController: NavController) {
             )
         )
         if (UsernameOrEmailError.value.isNotEmpty()) {
-            Text(UsernameOrEmailError.value,
+            Text(
+                UsernameOrEmailError.value,
                 color = Color.Red,
                 fontSize = 12.sp,
                 fontFamily = poppinsFontFamily,
                 fontWeight = FontWeight.Normal,
-                textAlign = TextAlign.Start
+                textAlign = TextAlign.Start,
+                modifier = Modifier.align(Alignment.Start)
             )
-        }else if (NotVerifiedError.value.isNotEmpty()){
-            Text(NotVerifiedError.value,
+        } else if (NotVerifiedError.value.isNotEmpty()) {
+            Text(
+                NotVerifiedError.value,
                 color = Color.Red,
                 fontSize = 12.sp,
                 fontFamily = poppinsFontFamily,
                 fontWeight = FontWeight.Normal,
-                textAlign = TextAlign.Start
+                textAlign = TextAlign.Start,
+                modifier = Modifier.align(Alignment.Start)
             )
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        OutlinedTextField(
-            value = password.value,
-            onValueChange = { password.value = it },
-            leadingIcon = { Icon(
-                imageVector = Icons.Default.Lock,
-                contentDescription = null) },
-            trailingIcon = {
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+            OutlinedTextField(
+                value = password.value,
+                onValueChange = { password.value = it },
+                leadingIcon = {
                     Icon(
-                        imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                        contentDescription = if (passwordVisible) "Hide Password" else "Show Password",
-                        tint = if (PasswordError.value.isNotEmpty()) Red else Color.Gray
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = null
                     )
-                }
-            },
-            label = {
-                Text(
-                    text = "Password",
-                    fontFamily = poppinsFontFamily,
-                    color = if (PasswordError.value.isNotEmpty()) Red else Color.Gray
+                },
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                            contentDescription = if (passwordVisible) "Hide Password" else "Show Password",
+                            tint = if (PasswordError.value.isNotEmpty()) Red else Color.Gray
+                        )
+                    }
+                },
+                label = {
+                    Text(
+                        text = "Password",
+                        fontFamily = poppinsFontFamily,
+                        color = if (PasswordError.value.isNotEmpty()) Red else Color.Gray
+                    )
+                },
+                singleLine = true,
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(10.dp),
+                isError = PasswordError.value.isNotEmpty(),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    cursorColor = if (PasswordError.value.isNotEmpty()) Red else DarkGray,
+                    focusedBorderColor = if (PasswordError.value.isNotEmpty()) Red else Black,
+                    unfocusedBorderColor = if (PasswordError.value.isNotEmpty()) Red else Color.Gray,
+                    errorBorderColor = Red,
+                    errorLabelColor = Red,
+                    errorLeadingIconColor = Red
                 )
-            },
-            singleLine = true,
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(0.8f),
-            shape = RoundedCornerShape(10.dp),
-            isError = PasswordError.value.isNotEmpty(),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                cursorColor = if (PasswordError.value.isNotEmpty()) Red else DarkGray,
-                focusedBorderColor = if (PasswordError.value.isNotEmpty()) Red else Black,
-                unfocusedBorderColor = if (PasswordError.value.isNotEmpty()) Red else Color.Gray,
-                errorBorderColor = Red,
-                errorLabelColor = Red,
-                errorLeadingIconColor = Red
             )
-        )
-        if (PasswordError.value.isNotEmpty()) {
-            Text(PasswordError.value, color = Color.Red, fontSize = 12.sp, fontFamily = poppinsFontFamily, fontWeight = FontWeight.Normal)
+
+            if (PasswordError.value.isNotEmpty()) {
+                Text(
+                    text = PasswordError.value,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    fontFamily = poppinsFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+            }
         }
 
 

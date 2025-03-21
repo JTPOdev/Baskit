@@ -139,4 +139,46 @@ data class Product(
 )
 
 
+data class OrderResponses(
+    val orders: OrdersWrapper
+)
 
+data class OrdersWrapper(
+    val total_orders: Int,
+    val orders: List<Order>
+)
+
+data class OrderResponse(
+    val orders: List<Order>
+)
+
+data class Order(
+    val id: Int,
+    val user_id: Int,
+    val product_id: Int,
+    val product_name: String,
+    val product_price: String,
+    val product_quantity: Int,
+    val product_portion: String,
+    val product_origin: String,
+    val store_id: Int,
+    val store_name: String,
+    val product_image: String,
+    val tagabili_firstname: String,
+    val tagabili_lastname: String,
+    val tagabili_mobile: String,
+    val tagabili_email: String,
+    val status: String,
+    val order_code: String?,
+    val created_at: String,
+    val firstname: String,
+    val lastname: String,
+    val mobile_number: String,
+    val total_orders: Int
+)
+
+
+data class TotalOrdersResponse(
+    val total_dagupan_orders: Int,
+    val total_calasiao_orders: Int
+)

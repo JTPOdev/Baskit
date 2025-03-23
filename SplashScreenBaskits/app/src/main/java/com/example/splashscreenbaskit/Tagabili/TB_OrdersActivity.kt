@@ -263,7 +263,7 @@ fun TB_OrderItems(orders: List<Order>) {
             Spacer(modifier = Modifier.width(120.dp))
 
             Text(
-                text = "₱ ${"%,.2f".format(totalPrice)}", // Format to 2 decimal places
+                text = "₱ ${"%,.2f".format(totalPrice)}",
                 color = Color.Black,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.ExtraBold,

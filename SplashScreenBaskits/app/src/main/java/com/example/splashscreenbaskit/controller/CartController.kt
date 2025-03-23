@@ -38,6 +38,13 @@ class CartController(
         productQuantity: Int,
         productPortion: String,
         productImageUrl: String,
+        orderStatus: String,
+        status: String,
+        tagabiliFirstname: String,
+        tagabiliLastname: String,
+        tagabiliMobile: String,
+        tagabiliEmail: String,
+        orderCode: String?,
         callback: (CartResponse) -> Unit
     ) {
         val cartItem = CartItem(
@@ -49,7 +56,14 @@ class CartController(
             store_name = storeName,
             product_quantity = productQuantity,
             product_portion = productPortion,
-            product_image = productImageUrl
+            product_image = productImageUrl,
+            order_status = orderStatus,
+            status = status,
+            tagabili_firstname = tagabiliFirstname,
+            tagabili_lastname = tagabiliLastname,
+            tagabili_mobile = tagabiliMobile,
+            tagabili_email = tagabiliEmail,
+            order_code = orderCode
         )
 
         apiService.addToCart(cartItem).enqueue(object : Callback<CartResponse> {

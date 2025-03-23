@@ -332,7 +332,14 @@ fun ProductScreen(
                                 productOrigin = product.product_origin,
                                 storeId = product.store_id,
                                 storeName = product.store_name,
-                                productImageUrl = product.product_image ?: ""
+                                productImageUrl = product.product_image ?: "",
+                                orderStatus = "Pending",
+                                status = "Pending",
+                                tagabiliFirstname = "Pending",
+                                tagabiliLastname = "Pending",
+                                tagabiliMobile = "Pending",
+                                tagabiliEmail = "Pending",
+                                orderCode = "Pending"
                             ) { response ->
                                 if (response.success) {
                                     Toast.makeText(context, "Failed to add to Basket!", Toast.LENGTH_SHORT).show()

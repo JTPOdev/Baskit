@@ -369,14 +369,16 @@ $router->post('/order/accept', function() use ($conn) {
         echo json_encode(['message' => 'Unauthorized']);
         exit;
     }
+
     $data = json_decode(file_get_contents("php://input"), true);
-    
-    if (!isset($data['order_code'])) {
+
+    if (!isset($data['order_code']) || !isset($data['user_id'])) {
         header('HTTP/1.1 400 Bad Request');
-        echo json_encode(['message' => 'Missing order_code']);
+        echo json_encode(['message' => 'Missing order_code or user_id']);
         exit;
     }
-    echo json_encode(OrderController::acceptAllOrders($tagabiliId, $data['order_code'], $conn));
+
+    echo json_encode(OrderController::acceptAllOrders($tagabiliId, $data['user_id'], $data['order_code'], $conn));
 }, false, true);
 
 $router->post('/order/complete', function() use ($conn) {

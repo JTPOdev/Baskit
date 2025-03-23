@@ -1,5 +1,6 @@
 package com.example.splashscreenbaskit.Home
 
+import CartItem
 import EditStoreScreen
 import Order
 import ProductsResponse
@@ -383,14 +384,52 @@ fun HomeScreen() {
                         storeByOriginController = storeByOriginController
                     )
                 }
+//                composable(BottomBarScreen.Cart.route) {
+//                    val context = LocalContext.current
+//                    val lifecycleOwner = LocalLifecycleOwner.current
+//                    val apiService = RetrofitInstance.create(ApiService::class.java)
+//
+//                    val cartController = remember { CartController(lifecycleOwner, context, apiService) }
+//
+//                    CartScreen(cartController = cartController, navController = navController)
+//                }
                 composable(BottomBarScreen.Cart.route) {
                     val context = LocalContext.current
                     val lifecycleOwner = LocalLifecycleOwner.current
                     val apiService = RetrofitInstance.create(ApiService::class.java)
 
                     val cartController = remember { CartController(lifecycleOwner, context, apiService) }
+                    var cartItems by remember { mutableStateOf<List<CartItem>>(emptyList()) }
+                    var isLoading by remember { mutableStateOf(true) }
 
-                    CartScreen(cartController = cartController, navController = navController)
+                    // Fetch cart items and decide navigation
+                    LaunchedEffect(Unit) {
+                        cartController.fetchCartItems { success, _, items ->
+                            isLoading = false
+                            if (success) {
+                                cartItems = items ?: emptyList()
+                                val hasOrderPlaced = cartItems.any { it.order_status == "Order Placed" }
+
+                                if (hasOrderPlaced) {
+                                    // Navigate to Checkout if at least one item is "Order Placed"
+                                    navController.navigate("CheckoutScreen") {
+                                        popUpTo(BottomBarScreen.Cart.route) { inclusive = true }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (isLoading) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    } else {
+                        CartScreen(cartController = cartController, navController = navController)
+                    }
                 }
                 composable(BottomBarScreen.Account.route) {
                     AccountActivity(navController)

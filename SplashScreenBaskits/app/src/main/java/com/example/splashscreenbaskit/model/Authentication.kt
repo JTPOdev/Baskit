@@ -92,7 +92,14 @@ data class CartItem(
     val product_origin: String?,
     val store_id: Int,
     val store_name: String,
-    val product_image: String?
+    val product_image: String?,
+    val order_status: String,
+    val status: String,
+    val tagabili_firstname: String,
+    val tagabili_lastname: String,
+    val tagabili_mobile: String,
+    val tagabili_email: String,
+    val order_code: String?
 )
 
 data class StoreRequestResponse(

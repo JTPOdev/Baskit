@@ -262,7 +262,7 @@ header {
     background: #f9f9f9;
     border-radius: 8px;
     box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    overflow: auto;
     border: 1px solid #ddd;
 }
 
@@ -289,4 +289,128 @@ header {
     background-color: #d8ece2;
     padding: 15px;
     border-bottom: 1px solid #8d8d8d;
+}
+
+.view-order-btn {
+    background-color: #22644B;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.view-order-btn:hover {
+    background-color: #1D7151;
+}
+
+.popup-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto;
+    z-index: 1002; 
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.popup-content {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 650px;
+    max-height: 85vh;
+    overflow-y: auto;
+    text-align: left;
+    position: relative;
+}
+
+
+#orderDetails {
+    margin-top: 15px;
+}
+
+.order-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.order-items-table th,
+.order-items-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.order-items-table th {
+    background-color: #22644B;
+    color: white;
+}
+
+h3 {
+    margin-top: 15px;
+    color: #22644B;
+}
+
+.order-history-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+#orderDatePicker {
+    display: none;
+}
+
+
+#historyResults {
+    margin-top: 15px;
+}
+
+.hidden {
+    display: none;
+}
+
+.history-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.history-btn {
+    background-color: #22644B;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.history-btn:hover {
+    background-color: #1D7151;
+}
+
+#orderHistoryList {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
 }

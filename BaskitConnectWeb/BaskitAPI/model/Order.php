@@ -16,7 +16,18 @@ class Order {
     }
 
     public static function createOrder($userId, $item, $conn) {
-        $sql = "INSERT INTO orders (user_id, product_id, product_name, product_price, product_quantity, product_portion, product_origin, store_id, store_name, product_image, status) 
+        $sql = "INSERT INTO orders (
+        user_id, 
+        product_id, 
+        product_name, 
+        product_price, 
+        product_quantity, 
+        product_portion, 
+        product_origin, 
+        store_id, 
+        store_name, 
+        product_image, 
+        status) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')";
         $stmt = $conn->prepare($sql);
         if (!$stmt) {
@@ -56,31 +67,82 @@ class Order {
         return $result->num_rows > 0 ? $result->fetch_assoc() : null;
     }
 
-    public static function updateOrdersWithTagabili($tagabiliId, $tagabiliDetails, $orderCode, $conn) {
-        $sql = "UPDATE orders 
-                SET tagabili_firstname = ?, 
-                    tagabili_lastname = ?, 
-                    tagabili_mobile = ?, 
-                    tagabili_email = ?, 
-                    status = 'Accepted', 
-                    order_code = ? 
-                WHERE tagabili_firstname = 'Pending' 
-                AND status = 'Pending'";
+    public static function updateOrdersWithTagabili($tagabiliId, $tagabiliDetails, $userId, $orderCode, $conn) {
+        $conn->begin_transaction(); // Start a transaction
     
-        $stmt = $conn->prepare($sql);
-        
-        $stmt->bind_param("sssss", 
-            $tagabiliDetails['firstname'], 
-            $tagabiliDetails['lastname'], 
-            $tagabiliDetails['mobile_number'], 
-            $tagabiliDetails['email'], 
-            $orderCode
-        );
+        try {
+            // Assign array values to variables before passing to bind_param
+            $firstname = $tagabiliDetails['firstname'];
+            $lastname = $tagabiliDetails['lastname'];
+            $mobile = $tagabiliDetails['mobile_number'];
+            $email = $tagabiliDetails['email'];
     
-        if ($stmt->execute()) {
-            return ['message' => 'Updated ' . $stmt->affected_rows . ' orders with provided order code'];
-        } else {
-            return ['message' => 'Failed to accept orders', 'error' => $stmt->error];
+            // ✅ Update `orders` table
+            $sql = "UPDATE orders 
+                    SET tagabili_firstname = ?, 
+                        tagabili_lastname = ?, 
+                        tagabili_mobile = ?, 
+                        tagabili_email = ?, 
+                        order_code = ?, 
+                        status = 'Accepted'
+                    WHERE user_id = ? 
+                    AND tagabili_firstname = 'Pending' 
+                    AND status = 'Pending'";
+    
+            $stmt = $conn->prepare($sql);
+            if (!$stmt) {
+                throw new Exception("Prepare statement failed: " . $conn->error);
+            }
+    
+            // ✅ Bind variables (not array elements directly)
+            $stmt->bind_param("sssssi", $firstname, $lastname, $mobile, $email, $orderCode, $userId);
+    
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to update orders: " . $stmt->error);
+            }
+    
+            // ✅ Update `cart` table
+            $cartSql = "UPDATE cart 
+                        SET status = 'Accepted',
+                            tagabili_firstname = ?, 
+                            tagabili_lastname = ?, 
+                            tagabili_mobile = ?, 
+                            tagabili_email = ?, 
+                            order_code = ?
+                        WHERE user_id = ? 
+                        AND status = 'Pending'";
+    
+            $cartStmt = $conn->prepare($cartSql);
+            if (!$cartStmt) {
+                throw new Exception("Prepare statement failed: " . $conn->error);
+            }
+    
+            // ✅ Bind variables
+            $cartStmt->bind_param("sssssi", $firstname, $lastname, $mobile, $email, $orderCode, $userId);
+    
+            if (!$cartStmt->execute()) {
+                throw new Exception("Failed to update cart: " . $cartStmt->error);
+            }
+    
+            $conn->commit(); // Commit the transaction
+    
+            return [
+                'message' => 'Order accepted successfully',
+                'updated_orders' => $stmt->affected_rows,
+                'updated_cart' => $cartStmt->affected_rows,
+                'order_code' => $orderCode,
+                'user_id' => $userId,
+                'tagabili' => [
+                    'id' => $tagabiliId,
+                    'firstname' => $firstname,
+                    'lastname' => $lastname,
+                    'mobile' => $mobile,
+                    'email' => $email
+                ]
+            ];
+        } catch (Exception $e) {
+            $conn->rollback(); // Rollback if any query fails
+            return ['message' => 'Failed to accept order', 'error' => $e->getMessage()];
         }
     }
     

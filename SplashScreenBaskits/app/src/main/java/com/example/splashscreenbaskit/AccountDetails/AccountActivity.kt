@@ -32,7 +32,7 @@ import com.example.splashscreenbaskit.controller.LogoutController
 import com.example.splashscreenbaskit.controller.UserController
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, heightDp = 900)
 @Composable
 fun AccountActivityPreview() {
     AccountActivity(navController = rememberNavController())
@@ -122,7 +122,7 @@ fun AccountActivity(navController: NavController) {
             IconButton(
                 onClick = { navController.navigate("NotificationsActivity") },
                 enabled = true,
-                modifier = Modifier.padding(start = 120.dp)
+                modifier = Modifier.padding(start = 135.dp)
             ) {
                 Icon(
                     imageVector = Icons.Filled.Notifications,
@@ -234,7 +234,7 @@ fun AccountActivity(navController: NavController) {
                 Button(
                     modifier = Modifier
                         .height(38.dp)
-                        .width(105.dp),
+                        .width(110.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFCB3B3B),
@@ -259,7 +259,7 @@ fun AccountActivity(navController: NavController) {
             dismissButton = {
                 Button(modifier = Modifier
                     .height(38.dp)
-                    .width(105.dp),
+                    .width(110.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFD9D9D9),

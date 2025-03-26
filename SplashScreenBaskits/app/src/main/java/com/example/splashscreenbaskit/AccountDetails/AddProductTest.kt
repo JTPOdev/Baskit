@@ -51,7 +51,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 
-@Preview(showBackground = true, heightDp = 1000)
+@Preview(showBackground = true, heightDp = 1200)
 @Composable
 fun AddProductTestPreview() {
     AddProductTest(navController = rememberNavController())
@@ -125,17 +125,15 @@ fun AddProductTest(navController: NavController) {
             IconButton(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier
-                    .padding(top = 70.dp, start = 40.dp)
+                    .padding(top = 60.dp, start = 25.dp)
                     .align(Alignment.TopStart)
-                    .size(24.dp)
+                    .size(35.dp)
                     .zIndex(1f)
-                    .background(Color(0xAAFFFFFF), shape = CircleShape)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.back),
                     contentDescription = "Back",
-                    tint = Color.Black,
-                    modifier = Modifier.size(15.dp)
+                    tint = Color.White
                 )
             }
 
@@ -152,7 +150,7 @@ fun AddProductTest(navController: NavController) {
                         contentDescription = "Selected Product Image",
                         modifier = Modifier
                             .fillMaxWidth()
-                            .size(315.dp)
+                            .size(320.dp)
                             .background(Color.White, shape = RoundedCornerShape(10.dp))
                     )
                 } else {
@@ -170,7 +168,7 @@ fun AddProductTest(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 20.dp)
+                .padding(20.dp)
         ) {
             OutlinedTextField(
                 value = product,

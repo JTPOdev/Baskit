@@ -29,7 +29,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.splashscreenbaskit.R
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
-@Preview(showBackground = true)
+@Preview(showBackground = true, heightDp = 2900)
 @Composable
 fun RulesScreenPreview() {
     RulesScreen(navController = rememberNavController())
@@ -84,7 +84,6 @@ fun RulesScreen(navController: NavHostController) {
                 .size(35.dp)
         ) {
             Icon(
-                modifier = Modifier.size(35.dp),
                 painter = painterResource(id = R.drawable.back),
                 contentDescription = "Back",
                 tint = Color.Black
@@ -261,7 +260,7 @@ fun RulesScreen(navController: NavHostController) {
                     enabled = hasReachedBottom
                 ) {
                     Text(
-                        text = "I accept & understand",
+                        text = "I understand & accept",
                         color = Color.White,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,

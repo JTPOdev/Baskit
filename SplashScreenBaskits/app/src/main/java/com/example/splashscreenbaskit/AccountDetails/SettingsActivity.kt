@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -79,7 +80,6 @@ fun SettingsActivity(navController: NavHostController) {
                     .size(35.dp)
             ) {
                 Icon(
-                    modifier = Modifier.size(35.dp),
                     painter = painterResource(id = R.drawable.back),
                     contentDescription = "Back",
                     tint = Color.Black
@@ -179,10 +179,11 @@ fun SettingsActivity(navController: NavHostController) {
                             modifier = Modifier.padding(horizontal = 20.dp, vertical = 30.dp)
                         ) {
                             Text(
-                                text = "Baskit is bla bla bla",
+                                text = "Baskit is a shopping app that simplifies local market shopping by allowing users to create grocery lists, generate a unique code, and quickly pick up their items in-store. The project aims to enhance convenience, streamline shopping, and improve customer satisfaction.",
                                 fontFamily = poppinsFontFamily,
                                 fontSize = 14.sp,
-                                fontWeight = FontWeight.Normal
+                                fontWeight = FontWeight.Normal,
+                                textAlign = TextAlign.Justify
                             )
                         }
                     }

@@ -55,12 +55,12 @@ import java.io.InputStream
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//private fun EditStoreScreenPreview() {
-//    EditStoreScreen(navController = rememberNavController())
-//}
 
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun EditStoreScreenPreview() {
+    EditStoreScreen(navController = rememberNavController())
+}
 @Composable
 fun EditStoreScreen(navController: NavController) {
     var storeName by remember { mutableStateOf("Loading...") }
@@ -141,6 +141,7 @@ fun StoreHeader(
         modifier = Modifier
             .fillMaxWidth()
             .height(315.dp)
+            .background(Color.LightGray)
     ) {
         Row{
         }
@@ -149,7 +150,7 @@ fun StoreHeader(
             modifier = Modifier
                 .padding(top = 60.dp, start = 25.dp)
                 .align(Alignment.TopStart)
-                .size(40.dp)
+                .size(35.dp)
                 .zIndex(1f)
         ) {
             Icon(
@@ -174,7 +175,7 @@ fun StoreHeader(
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 60.dp, end = 25.dp)
+                .padding(top = 60.dp, end = 15.dp)
         ) {
             IconButton(onClick = { showMenu = true }) {
                 Icon(

@@ -133,7 +133,7 @@ fun TB_OrdersContent(navController: NavController, userId: Int) {
                 IconButton(
                     onClick = { navController.popBackStack() },
                     modifier = Modifier
-                        .padding(top = 60.dp, start = 30.dp)
+                        .padding(top = 60.dp, start = 25.dp)
                         .size(35.dp)
                 ) {
                     Icon(
@@ -165,12 +165,12 @@ fun TB_OrdersContent(navController: NavController, userId: Int) {
 
             }
             Box(modifier = Modifier
-                .fillMaxSize()
+                .height(600.dp)
                 .clip(RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp))
                 .background (Color(0xFFE0F4DE))
             ){
                 Column (
-                    modifier = Modifier.fillMaxWidth() .padding(30.dp),
+                    modifier = Modifier.fillMaxSize() .padding(30.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {

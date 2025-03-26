@@ -78,10 +78,9 @@ fun TB_AccountDetails(navController: NavController) {
             onClick = { navController.popBackStack() },
             modifier = Modifier
                 .padding(top = 60.dp, start = 30.dp)
-                .size(35.dp)
+                .size(40.dp)
         ) {
             Icon(
-                modifier = Modifier.size(35.dp),
                 painter = painterResource(id = R.drawable.back),
                 contentDescription = "Back",
                 tint = Color.Black
@@ -179,7 +178,7 @@ fun TB_AccountDetails(navController: NavController) {
                 Button(
                     modifier = Modifier
                         .height(38.dp)
-                        .width(105.dp),
+                        .width(110.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFCB3B3B),
@@ -204,7 +203,7 @@ fun TB_AccountDetails(navController: NavController) {
             dismissButton = {
                 Button(modifier = Modifier
                     .height(38.dp)
-                    .width(105.dp),
+                    .width(110.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFD9D9D9),

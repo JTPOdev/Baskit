@@ -23,16 +23,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.splashscreenbaskit.Home.HomeScreen
 import com.example.splashscreenbaskit.R
 import com.example.splashscreenbaskit.controllers.OrderController
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
 import com.google.accompanist.swiperefresh.*
 
-
+@Preview(showBackground = true)
+@Composable
+fun TBHomePreview() {
+    TB_HomeContent(navController = rememberNavController())
+}
 @Composable
 fun TB_HomeContent(navController: NavController) {
     val scrollState = rememberSaveable { mutableStateOf(0) }
@@ -129,14 +137,12 @@ fun TB_HomeContent(navController: NavController) {
                             .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Spacer(modifier = Modifier.height(45.dp))
+                        Spacer(modifier = Modifier.height(30.dp))
 
                         Image(
                             painter = painterResource(id = R.drawable.baskitlogo_white),
                             contentDescription = "Logo",
-                            modifier = Modifier
-                                .size(70.dp)
-                                .padding(bottom = 15.dp)
+                            modifier = Modifier.size(80.dp)
                         )
 
                         Text(
@@ -145,7 +151,7 @@ fun TB_HomeContent(navController: NavController) {
                             fontSize = 12.sp,
                             color = Color.White,
                             fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.offset(y = (-20).dp)
+                            modifier = Modifier.offset(y = (-10).dp)
                         )
 
                         Spacer(modifier = Modifier.height(25.dp))
@@ -271,14 +277,16 @@ fun TB_HomeContent(navController: NavController) {
                             color = Color.Black,
                             fontFamily = poppinsFontFamily,
                             fontWeight = FontWeight.Normal,
-                            fontSize = 14.sp
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center
                         )
                     } else if (errorMessage != null) {
                         Text("Error: $errorMessage",
                             color = Color.Red,
                             fontFamily = poppinsFontFamily,
                             fontWeight = FontWeight.Normal,
-                            fontSize = 14.sp
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center
                         )
                     } else if (orders.isEmpty()) {
                         DefaultScreen()

@@ -35,6 +35,8 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.filled.ShoppingBasket
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -293,7 +295,7 @@ fun BottomBar(navController: NavController) {
 
 sealed class BottomBarScreen(val route: String, val title: String, val icon: ImageVector) {
     object Home : BottomBarScreen("home", "Home", Icons.Default.Home)
-    object Cart : BottomBarScreen("cart", "Cart", Icons.Default.ShoppingCart)
+    object Cart : BottomBarScreen("cart", "My Basket", Icons.Default.ShoppingBasket)
     object Account : BottomBarScreen("account", "Account", Icons.Default.AccountCircle)
 }
 
@@ -315,7 +317,7 @@ fun HomeScreen() {
             if (currentRoute !in listOf("ProductScreen/{productName}/{productResponse}",
                     "CartScreen", "CheckoutScreen", "ShopScreen/{vendorName}/{vendorId}",
                     "StoreRequestScreen", "RulesScreen", "EditStoreScreen", "RequestSentScreen",
-                    "AddProductTest", "ProductScreen", "StoreScreen", "LoginActivity" )) {
+                    "AddProductTest", "ProductScreen", "StoreScreen", "LoginActivity", "TB_HomeActivity", "TB_OrdersActivity", "TB_AccountDetails" )) {
                 BottomBar(navController = navController)
             }
         }
@@ -583,21 +585,21 @@ fun HomeContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(30.dp))
                 Image(
                     painter = painterResource(id = R.drawable.baskit_logo),
                     contentDescription = "Logo",
-                    modifier = Modifier.size(50.dp)
+                    modifier = Modifier.size(80.dp)
                 )
-                Spacer(modifier = Modifier.height(20.dp))
                 Text(
                     text = "Shop Smarter, Not Harder",
                     fontFamily = poppinsFontFamily,
                     fontSize = 12.sp,
-                    color = Color.Black,
-                    fontWeight = FontWeight.SemiBold
+                    color = Color(0xFF1D7151),
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.offset(y=-10.dp)
                 )
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 SearchBar(navController)
                 Spacer(modifier = Modifier.height(30.dp))
                 SliderCard()
@@ -644,13 +646,13 @@ fun HomeContent(
                 } else if (!storeErrorMessage.value.isNullOrEmpty()) {
                     item {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(text = storeErrorMessage.value ?: "Unknown error", color = Color.Red, fontSize = 16.sp)
+                            Text(text = storeErrorMessage.value ?: "Unknown error", color = Color.Red, fontSize = 14.sp, fontFamily = poppinsFontFamily)
                         }
                     }
                 } else if (stores.isEmpty()) {
                     item {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(text = "No stores available", color = Color.Gray, fontSize = 16.sp)
+                            Text(text = "No stores available", color = Color.Gray, fontSize = 14.sp, fontFamily = poppinsFontFamily)
                         }
                     }
                 } else {
@@ -669,14 +671,14 @@ fun HomeContent(
             errorMessage.value != null -> {
                 item {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = errorMessage.value ?: "Unknown error", color = Color.Red, fontSize = 16.sp)
+                        Text(text = errorMessage.value ?: "Unknown error", color = Color.Red, fontSize = 14.sp, fontFamily = poppinsFontFamily)
                     }
                 }
             }
             filteredProducts.isEmpty() -> {
                 item {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = "No products available", color = Color.Gray, fontSize = 16.sp)
+                        Text(text = "No products available", color = Color.Gray, fontSize = 14.sp, fontFamily = poppinsFontFamily)
                     }
                 }
             }

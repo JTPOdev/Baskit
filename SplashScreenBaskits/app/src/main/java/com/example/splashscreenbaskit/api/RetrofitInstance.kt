@@ -7,7 +7,7 @@ import com.google.gson.GsonBuilder
 import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
-    private const val BASE_URL = "http://192.168.100.111:8000/"
+    private const val BASE_URL = "http://192.168.1.233:8000/"
     // Add the logging interceptor
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

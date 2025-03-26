@@ -57,7 +57,7 @@ fun ResetPasswordScreen(navController: NavController) {
                 modifier = Modifier
                     .padding(top = 60.dp, start = 25.dp)
                     .align(Alignment.TopStart)
-                    .size(40.dp)
+                    .size(35.dp)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.back),

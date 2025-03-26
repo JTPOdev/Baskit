@@ -153,7 +153,6 @@ fun ShopInformationScreen(
                 .size(35.dp)
         ) {
             Icon(
-                modifier = Modifier.size(35.dp),
                 painter = painterResource(id = R.drawable.back),
                 contentDescription = "Back",
                 tint = Color.Black
@@ -169,14 +168,14 @@ fun ShopInformationScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(50.dp)
                         .background(Color(0xFF1D7151), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "1",
                         color = Color.White,
-                        fontSize = 16.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = poppinsFontFamily
                     )
@@ -201,7 +200,7 @@ fun ShopInformationScreen(
                         fontFamily = poppinsFontFamily)
                 }
             }
-            Spacer(modifier = Modifier.height(65.dp))
+            Spacer(modifier = Modifier.height(50.dp))
 
             Text(
                 "Shop Information",
@@ -465,20 +464,20 @@ fun BusinessInformationScreen(
                 )
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(50.dp)
                         .background(Color(0xFF1D7151), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "2",
                         color = Color.White,
-                        fontSize = 16.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = poppinsFontFamily
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(65.dp))
+            Spacer(modifier = Modifier.height(50.dp))
 
             Text(
                 "Business Information",

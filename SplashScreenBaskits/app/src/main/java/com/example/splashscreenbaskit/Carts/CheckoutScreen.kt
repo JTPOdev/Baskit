@@ -41,16 +41,30 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import com.example.splashscreenbaskit.R
+import com.example.splashscreenbaskit.api.ApiService
 import com.example.splashscreenbaskit.controller.CartController
 import kotlinx.coroutines.delay
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
+@Preview(showBackground = true)
+@Composable
+fun CheckoutPreview(){
+    val navController = rememberNavController()
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val apiService = RetrofitInstance.create(ApiService::class.java)
 
+    val cartController = remember { CartController(lifecycleOwner, context, apiService) }
+    CheckoutScreen(cartController = cartController, navController = navController)
+}
 @Composable
 fun CheckoutScreen(cartController: CartController, navController: NavController) {
     var cartItems by remember { mutableStateOf<List<CartItem>>(emptyList()) }
@@ -108,7 +122,7 @@ fun CheckoutScreen(cartController: CartController, navController: NavController)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 70.dp, start = 40.dp),
+                .padding(top = 60.dp, start = 25.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
@@ -121,13 +135,12 @@ fun CheckoutScreen(cartController: CartController, navController: NavController)
                         navController.popBackStack()
                     }
                 },
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(35.dp)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.back),
                     contentDescription = "Back",
-                    tint = Color.Black,
-                    modifier = Modifier.size(20.dp)
+                    tint = Color.Black
                 )
             }
             Spacer(modifier = Modifier.width(80.dp))
@@ -274,11 +287,11 @@ fun CheckoutScreen(cartController: CartController, navController: NavController)
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Divider(thickness = 0.5.dp, color = Color.Black)
 
-            Spacer(modifier = Modifier.height(7.dp))
+            Spacer(modifier = Modifier.height(9.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),

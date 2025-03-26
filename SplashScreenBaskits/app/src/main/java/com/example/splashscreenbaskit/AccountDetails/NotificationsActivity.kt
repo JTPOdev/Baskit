@@ -59,12 +59,11 @@ fun NotificationsActivity(navController: NavHostController) {
         IconButton(
             onClick = { navController.popBackStack() },
             modifier = Modifier
-                .padding(top = 45.dp, start = 25.dp)
+                .padding(top = 60.dp, start = 25.dp)
+                .align(Alignment.TopStart)
                 .size(35.dp)
-                .background(Color.White, shape = RoundedCornerShape(50))
         ) {
             Icon(
-                modifier = Modifier.size(20.dp),
                 painter = painterResource(id = R.drawable.back),
                 contentDescription = "Back",
                 tint = Color.Black

@@ -37,9 +37,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.splashscreenbaskit.AccountDetails.StoreRequestScreen
 import com.example.splashscreenbaskit.R
 import com.example.splashscreenbaskit.api.ApiService
 import com.example.splashscreenbaskit.controller.UserStoreController
@@ -54,6 +56,14 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+@Preview(showBackground = true)
+@Composable
+fun StoreScreenPreview() {
+    val navController = rememberNavController()
+    val backStackEntry = navController.currentBackStackEntryAsState().value
+    val storeId = backStackEntry?.arguments?.getInt("storeId") ?: 0
+    StoreScreen(navController, storeId)
+}
 
 @Composable
 fun StoreScreen(navController: NavController, storeId: Int) {
@@ -106,6 +116,7 @@ fun StoreHeaders(
         modifier = Modifier
             .fillMaxWidth()
             .height(315.dp)
+            .background(Color.LightGray)
     ) {
         IconButton(
             onClick = { navController.popBackStack() },

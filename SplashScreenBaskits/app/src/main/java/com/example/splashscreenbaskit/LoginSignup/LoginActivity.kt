@@ -88,9 +88,7 @@ fun LoginActivity(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp)
             .background(Color.White),
-        //verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(130.dp))
@@ -227,10 +225,7 @@ fun LoginActivity(navController: NavController) {
                 fontFamily = poppinsFontFamily,
                 fontSize = 12.sp,
                 color = Color(0xFF4557FF),
-                modifier = Modifier.clickable {
-                    Log.d("ForgotPassword", "Clicked!")
-                    showDialog = true
-                }
+                modifier = Modifier.clickable {navController.navigate("ForgotPasswordScreen")}
             )
         }
 

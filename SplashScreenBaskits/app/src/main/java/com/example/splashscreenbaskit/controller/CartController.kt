@@ -45,6 +45,7 @@ class CartController(
         tagabiliMobile: String,
         tagabiliEmail: String,
         orderCode: String?,
+        isReady: String,
         callback: (CartResponse) -> Unit
     ) {
         val cartItem = CartItem(
@@ -63,7 +64,8 @@ class CartController(
             tagabili_lastname = tagabiliLastname,
             tagabili_mobile = tagabiliMobile,
             tagabili_email = tagabiliEmail,
-            order_code = orderCode
+            order_code = orderCode,
+            is_ready = isReady
         )
 
         apiService.addToCart(cartItem).enqueue(object : Callback<CartResponse> {

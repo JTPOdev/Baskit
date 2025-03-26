@@ -36,7 +36,7 @@ class RegisterController(
         birthYear: String,
         onResult: (Boolean, String, Map<String, String>) -> Unit
     ) {
-        // First, check if passwords match
+
         if (password != confirmPassword) {
             onResult(false, "Passwords do not match!", emptyMap())
             return
@@ -92,7 +92,7 @@ class RegisterController(
                             println(line.trim())
                         }
                     }
-                    // Pass errors to onResult
+
                     onResult(false, errorMessage, errors)
                 }
             } catch (e: HttpException) {
@@ -101,7 +101,7 @@ class RegisterController(
                     false,
                     "An error occurred: ${e.message()}",
                     emptyMap()
-                ) // Pass empty map on error
+                )
             } catch (e: Exception) {
                 Log.e("RegisterError", e.toString())
                 onResult(false, "Unexpected error: ${e.localizedMessage}", emptyMap())

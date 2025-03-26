@@ -3,8 +3,11 @@ package com.example.splashscreenbaskit.Home
 import CartItem
 import EditStoreScreen
 import Order
+import ProductList
 import ProductsResponse
+import StoreHeader
 import StoreResponse
+import StoreScreen
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
@@ -12,6 +15,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -72,6 +76,7 @@ import com.example.splashscreenbaskit.Tagabili.TB_OrdersContent
 import com.example.splashscreenbaskit.api.ApiService
 import com.example.splashscreenbaskit.api.TokenManager
 import com.example.splashscreenbaskit.controller.CartController
+import com.example.splashscreenbaskit.controller.UserStoreController
 import com.example.splashscreenbaskit.controllers.ProductByOriginController
 import com.example.splashscreenbaskit.controllers.ProductController
 import com.example.splashscreenbaskit.controllers.StoreByOriginController
@@ -79,6 +84,7 @@ import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
 import com.google.gson.Gson
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+
 
 // Data Models
 data class Vendor(
@@ -90,30 +96,43 @@ data class Vendor(
 // UI Components
 @Composable
 fun CategoryRow(selectedCategory: MutableState<String?>, navController: NavController) {
-    val categories = listOf("STORE", "Vegetables", "Fruits", "Meats", "Fish", "Spices", "Frozen Foods")
+    val categories = listOf("Stores", "Fruits", "Vegetables", "Meats", "Spices", "Frozen Foods", "Fish")
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(selectedCategory.value) {
+        val index = categories.indexOf(selectedCategory.value)
+        if (index != -1) {
+            listState.animateScrollToItem(index, scrollOffset = -350)
+        }
+    }
 
     LazyRow(
-        modifier = Modifier.fillMaxWidth().padding(top = 5.dp, start = 8.dp, end = 10.dp)
+        state = listState,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 5.dp, start = 8.dp, end = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(categories) { category ->
-            TextButton(
+            Box(
                 modifier = Modifier
-                    .background(
-                        color = if (selectedCategory.value == category) Color(0xFFFFA726) else Color.Transparent,
-                        shape = RoundedCornerShape(20.dp)
-                    )
-                    .wrapContentHeight()
-                    .heightIn(min = 20.dp),
-                onClick = { selectedCategory.value = category }
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(if (selectedCategory.value == category) Color(0xFFFFA726) else Color.Transparent)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        selectedCategory.value = category
+                    }
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
                     text = category,
-                    color = if (selectedCategory.value == category) Color(0xFFFFFFFF) else Color(0xFFBFBFBF),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = poppinsFontFamily,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    color = if (selectedCategory.value == category) Color.White else Color(0xFFBFBFBF)
                 )
             }
         }
@@ -180,12 +199,7 @@ fun SliderCard() {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            AsyncImage(
-                model = "//api",
-                contentDescription = "Slider Image",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
+            SlideImg(Modifier.fillMaxSize())
         }
     }
 }
@@ -284,70 +298,14 @@ sealed class BottomBarScreen(val route: String, val title: String, val icon: Ima
 }
 
 @Composable
-fun ShopScreen(navController: NavController, vendorName: String, vendorId: Int, viewModel: HomeViewModel = viewModel()) {
-    val selectedCategory = remember { mutableStateOf<String?>("Vegetables") }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(250.dp)
-        ) {
-            val vendor = viewModel.dagupanVendors.find { it.id == vendorId }
-                ?: viewModel.calasiaoVendors.find { it.id == vendorId }
-            AsyncImage(
-                model = vendor?.imageUrl ?: "",
-                contentDescription = vendorName,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp),
-                contentScale = ContentScale.Crop
-            )
-            IconButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier
-                    .padding(top = 16.dp, start = 16.dp)
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Color.White)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color.Black,
-                    modifier = Modifier.size(15.dp)
-                )
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "$vendorName's Store",
-                color = Color.Black,
-                fontSize = 24.sp,
-                fontFamily = poppinsFontFamily,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            CategoryRow(selectedCategory = selectedCategory, navController = navController)
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-    }
-}
-
-@Composable
 fun HomeScreen() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+//    val context = LocalContext.current
+//    val tokenManager = remember { com.example.splashscreenbaskit.api.TokenManager(context) }
+//    var isLoggedIn by remember { mutableStateOf(TokenManager.getToken() != null) }
 
     Log.d("HomeScreen", "Current Route: $currentRoute")
 
@@ -357,7 +315,7 @@ fun HomeScreen() {
             if (currentRoute !in listOf("ProductScreen/{productName}/{productResponse}",
                     "CartScreen", "CheckoutScreen", "ShopScreen/{vendorName}/{vendorId}",
                     "StoreRequestScreen", "RulesScreen", "EditStoreScreen", "RequestSentScreen",
-                    "AddProductTest", "ProductScreen" )) {
+                    "AddProductTest", "ProductScreen", "StoreScreen", "LoginActivity" )) {
                 BottomBar(navController = navController)
             }
         }
@@ -384,15 +342,6 @@ fun HomeScreen() {
                         storeByOriginController = storeByOriginController
                     )
                 }
-//                composable(BottomBarScreen.Cart.route) {
-//                    val context = LocalContext.current
-//                    val lifecycleOwner = LocalLifecycleOwner.current
-//                    val apiService = RetrofitInstance.create(ApiService::class.java)
-//
-//                    val cartController = remember { CartController(lifecycleOwner, context, apiService) }
-//
-//                    CartScreen(cartController = cartController, navController = navController)
-//                }
                 composable(BottomBarScreen.Cart.route) {
                     val context = LocalContext.current
                     val lifecycleOwner = LocalLifecycleOwner.current
@@ -400,18 +349,15 @@ fun HomeScreen() {
 
                     val cartController = remember { CartController(lifecycleOwner, context, apiService) }
                     var cartItems by remember { mutableStateOf<List<CartItem>>(emptyList()) }
-                    var isLoading by remember { mutableStateOf(true) }
+                    var isLoading by remember {mutableStateOf(true)}
 
-                    // Fetch cart items and decide navigation
                     LaunchedEffect(Unit) {
                         cartController.fetchCartItems { success, _, items ->
-                            isLoading = false
                             if (success) {
+                                isLoading = false
                                 cartItems = items ?: emptyList()
                                 val hasOrderPlaced = cartItems.any { it.order_status == "Order Placed" }
-
                                 if (hasOrderPlaced) {
-                                    // Navigate to Checkout if at least one item is "Order Placed"
                                     navController.navigate("CheckoutScreen") {
                                         popUpTo(BottomBarScreen.Cart.route) { inclusive = true }
                                     }
@@ -419,7 +365,6 @@ fun HomeScreen() {
                             }
                         }
                     }
-
                     if (isLoading) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -504,13 +449,16 @@ fun HomeScreen() {
                 composable("TB_HomeActivity") {
                     TB_HomeContent(navController)
                 }
+                composable("TB_AccountDetails") {
+                    TB_AccountDetails(navController)
+                }
                 composable(
                     "tb_orders/{user_id}",
                     arguments = listOf(navArgument("user_id") { type = NavType.StringType })
                 ) { backStackEntry ->
                     var orders by remember { mutableStateOf<List<Order>>(emptyList()) }
 
-                    val userId = backStackEntry.arguments?.getString("user_id")?.toIntOrNull() ?: 0  // Convert String to Int safely
+                    val userId = backStackEntry.arguments?.getString("user_id")?.toIntOrNull() ?: 0
 
                     TB_OrdersContent(navController, userId)
                 }
@@ -528,18 +476,12 @@ fun HomeScreen() {
                     val cartController = remember { CartController(lifecycleOwner, context, apiService) }
                     CheckoutScreen(cartController = cartController, navController = navController)
                 }
-                composable(
-                    "ShopScreen/{vendorName}/{vendorId}",
-                    arguments = listOf(
-                        navArgument("vendorName") { type = NavType.StringType },
-                        navArgument("vendorId") { type = NavType.IntType }
-                    )
-                ) { backStackEntry ->
-                    ShopScreen(
-                        navController = navController,
-                        vendorName = backStackEntry.arguments?.getString("vendorName") ?: "",
-                        vendorId = backStackEntry.arguments?.getInt("vendorId") ?: 0
-                    )
+//                composable("StoreScreen") {
+//                    StoreScreen(navController)
+//                }
+                composable("StoreScreen/{storeId}", arguments = listOf(navArgument("storeId") { type = NavType.IntType })) { backStackEntry ->
+                    val storeId = backStackEntry.arguments?.getInt("storeId") ?: 0
+                    StoreScreen(navController, storeId)
                 }
             }
         }
@@ -554,7 +496,7 @@ fun HomeContent(
     storeByOriginController: StoreByOriginController
 ) {
 
-    val selectedCategory = remember { mutableStateOf<String?>("STORE") }
+    val selectedCategory = remember { mutableStateOf<String?>("Stores") }
     val selectedLocation = remember { mutableStateOf<String?>("Dagupan") }
 
     val allProducts = remember { mutableStateListOf<ProductsResponse>() }
@@ -577,7 +519,7 @@ fun HomeContent(
     LaunchedEffect(selectedLocation.value, selectedCategory.value) {
         val currentLocation = selectedLocation.value ?: return@LaunchedEffect
 
-        if (selectedCategory.value == "STORE") {
+        if (selectedCategory.value == "Stores") {
             isStoreLoading.value = true
             storeErrorMessage.value = null
             stores.clear()
@@ -600,12 +542,11 @@ fun HomeContent(
         }
     }
 
-    // Fetch products when category or location changes
     LaunchedEffect(selectedCategory.value, selectedLocation.value) {
         val currentCategory = selectedCategory.value ?: return@LaunchedEffect
         val currentLocation = selectedLocation.value ?: return@LaunchedEffect
 
-        if (currentCategory == "STORE") return@LaunchedEffect
+        if (currentCategory == "Stores") return@LaunchedEffect
 
         isLoading.value = true
         errorMessage.value = null
@@ -637,7 +578,6 @@ fun HomeContent(
             .background(Color.White),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Top Section (Logo, Search Bar, Slider)
         item {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -665,7 +605,6 @@ fun HomeContent(
             }
         }
 
-        // Sticky Header - Location & Category Selection
         stickyHeader {
             Column(
                 modifier = Modifier
@@ -694,9 +633,8 @@ fun HomeContent(
             }
         }
 
-        // Scrollable Content (Stores / Products)
         when {
-            selectedCategory.value == "STORE" -> {
+            selectedCategory.value == "Stores" -> {
                 if (isStoreLoading.value) {
                     item {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -763,7 +701,6 @@ fun HomeContent(
                     }
                 }
             }
-
         }
     }
 }
@@ -802,7 +739,7 @@ fun StoreItem(modifier: Modifier = Modifier, store: StoreResponse, navController
             .fillMaxWidth()
             .height(200.dp)
             .clickable {
-                navController.navigate("ShopScreen/${store.store_name}/${store.id}")
+                navController.navigate("StoreScreen/${store.id}")
             },
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)

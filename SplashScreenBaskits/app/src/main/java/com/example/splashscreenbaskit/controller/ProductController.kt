@@ -1,7 +1,6 @@
 package com.example.splashscreenbaskit.controllers
 
 import Product
-import ProductOriginResponse
 import ProductResponse
 import ProductsResponse
 import android.content.Context
@@ -23,7 +22,6 @@ import retrofit2.Response
 class ProductController(private val lifecycleOwner: LifecycleOwner, private val context: Context) {
     private val apiService: ApiService = RetrofitInstance.create(ApiService::class.java)
 
-    // Function to add a product
     fun addProduct(
         productName: String,
         productPrice: String,
@@ -37,7 +35,6 @@ class ProductController(private val lifecycleOwner: LifecycleOwner, private val 
         val priceBody = RequestBody.create("text/plain".toMediaTypeOrNull(), productPrice)
         val categoryBody = RequestBody.create("text/plain".toMediaTypeOrNull(), productCategory)
 
-        // Call the API method to add a product
         val response = apiService.addProduct(
             nameBody,
             priceBody,
@@ -46,7 +43,6 @@ class ProductController(private val lifecycleOwner: LifecycleOwner, private val 
             "Bearer $token"
         )
 
-        // Enqueue the network request asynchronously
         response.enqueue(object : Callback<ProductResponse> {
             override fun onResponse(call: Call<ProductResponse>, response: Response<ProductResponse>) {
                 if (response.isSuccessful) {
@@ -84,6 +80,38 @@ class ProductController(private val lifecycleOwner: LifecycleOwner, private val 
                     } else {
                         Log.e("ProductController", "Product data is missing or empty in the response")
                         onResult(false, "Failed to fetch product details", null)
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("ProductController", "API Error: $errorBody")
+                    onResult(false, "Failed to fetch product details", null)
+                }
+            } catch (e: HttpException) {
+                Log.e("ProductController", "HTTP Error: ${e.message()}")
+                onResult(false, "Server error: ${e.message()}", null)
+            } catch (e: Exception) {
+                Log.e("ProductController", "Exception: ${e.localizedMessage}")
+                onResult(false, "Unexpected error: ${e.localizedMessage}", null)
+            }
+        }
+    }
+
+    fun fetchProductDetailsByID(storeId: Int, onResult: (Boolean, String?, List<ProductsResponse>?) -> Unit) {
+        lifecycleOwner.lifecycleScope.launch {
+            val apiService = RetrofitInstance.create(ApiService::class.java)
+
+            try {
+                val response = apiService.getProductDetailsByID(storeId)
+
+                if (response.isSuccessful) {
+                    val productList = response.body()
+
+                    if (productList != null && productList.isNotEmpty()) {
+                        saveProductsLocally(productList)
+                        onResult(true, null, productList)
+                    } else {
+                        Log.e("ProductController", "Product data is missing or empty in the response")
+                        onResult(false, "No products found for this store", null)
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()

@@ -54,7 +54,8 @@ fun PreviewProductScreen() {
         store_name = "Fresh Market",
         store_phone_number = "09123456789",
         store_address = "123 Street, City",
-        product_image = ""
+        product_image = "",
+        store_image = ""
     )
 
     val fakeCartController = CartController(
@@ -94,7 +95,6 @@ fun ProductScreen(
     val basePrice = product.product_price.toDouble()
     val priceIncrease = 30.0
 
-    // Calculate price based on selected weight
     val priceForWeight = when (selectedWeight) {
         "1 pc" -> basePrice
         "1/4 kg" -> basePrice + priceIncrease
@@ -113,7 +113,6 @@ fun ProductScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Image Section
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -147,7 +146,6 @@ fun ProductScreen(
 
         Spacer(modifier = Modifier.height(30.dp))
 
-        // Product Details
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -176,7 +174,6 @@ fun ProductScreen(
                     color = Color.Gray
                 )
 
-                // Quantity Buttons
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(
                         onClick = { if (quantity > 1) quantity-- },
@@ -262,7 +259,6 @@ fun ProductScreen(
 
             Spacer(modifier = Modifier.height(35.dp))
 
-            // Weight Selection
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -291,7 +287,6 @@ fun ProductScreen(
             }
         }
 
-        // Bottom Bar with Total Price and Add to Basket
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -339,7 +334,8 @@ fun ProductScreen(
                                 tagabiliLastname = "Pending",
                                 tagabiliMobile = "Pending",
                                 tagabiliEmail = "Pending",
-                                orderCode = "Pending"
+                                orderCode = "Pending",
+                                isReady = "Pending",
                             ) { response ->
                                 if (response.success) {
                                     Toast.makeText(context, "Failed to add to Basket!", Toast.LENGTH_SHORT).show()
@@ -431,7 +427,7 @@ fun ProductScreen(
                                 Spacer(modifier = Modifier.height(12.dp))
 
                                 Image(
-                                    painter = painterResource(id = R.drawable.baskitcheckmark), // IMAGE
+                                    painter = painterResource(id = R.drawable.baskitcheckmark),
                                     contentDescription = "Checkmark",
                                     modifier = Modifier.size(60.dp)
                                 )

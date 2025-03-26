@@ -133,7 +133,7 @@ class ProductController
             return;
         }
 
-        $store = Store::getStoreByUserId($conn, $userId);
+        $store = Store::getStoreByUserIds($conn, $userId);
         if (!$store) {
             http_response_code(404);
             echo json_encode(['message' => 'No store associated with this user']);
@@ -152,6 +152,38 @@ class ProductController
         }
     }
 
+    public static function getAllProductsByStoreId($conn, $storeId)
+    {
+        header('Content-Type: application/json');
+
+        // Validate input
+        if (!is_numeric($storeId)) {
+            http_response_code(400);
+            echo json_encode(['message' => 'Invalid store ID']);
+            return;
+        }
+
+        $storeId = intval($storeId);
+
+        // Check if store exists
+        $store = Store::getStoreById($conn, $storeId);
+        if (!$store) {
+            http_response_code(404);
+            echo json_encode(['message' => 'Store not found']);
+            return;
+        }
+
+        // Fetch products for the given store
+        $products = Product::getProductsByStore($conn, $storeId);
+
+        if ($products) {
+            http_response_code(200);
+            echo json_encode($products);
+        } else {
+            http_response_code(404);
+            echo json_encode(['message' => 'No products found for this store']);
+        }
+    }
     // --------- UPLOAD FILES -------- //
     private static function uploadFile($file, $folder)
     {

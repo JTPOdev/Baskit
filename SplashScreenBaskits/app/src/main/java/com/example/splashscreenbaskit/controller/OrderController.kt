@@ -1,7 +1,9 @@
 package com.example.splashscreenbaskit.controllers
 
+import AcceptOrderRequest
 import Order
 import OrderResponse
+import ReadyOrderRequest
 import TotalOrdersResponse
 import android.content.Context
 import android.util.Log
@@ -37,13 +39,11 @@ class OrderController(
             }
 
             try {
-                // Fetch orders with the authorization header
                 val response = apiService.getOrders("Bearer $accessToken")
 
                 if (response.isSuccessful) {
                     val ordersResponse = response.body()
 
-                    // Ensure the response body is valid and parse it as OrdersResponse
                     if (ordersResponse != null) {
                         val orders = ordersResponse.orders
 
@@ -59,8 +59,8 @@ class OrderController(
                             orders
                         }
 
-                        saveOrdersLocally(filteredOrders)  // Optionally save to local storage
-                        onResult(true, null, filteredOrders)  // Return the fetched orders
+                        saveOrdersLocally(filteredOrders)
+                        onResult(true, null, filteredOrders)
                     } else {
                         Log.e("OrderController", "No valid orders found")
                         onResult(false, "No orders available", null)
@@ -80,7 +80,46 @@ class OrderController(
         }
     }
 
-    // Optional: To handle saving orders locally
+    fun fetchAcceptedOrders(
+        onResult: (Boolean, String?, List<Order>?) -> Unit
+    ) {
+        lifecycleOwner.lifecycleScope.launch {
+            val apiService = RetrofitInstance.create(ApiService::class.java)
+            val accessToken = TokenManager.getToken()
+
+            if (accessToken.isNullOrEmpty()) {
+                onResult(false, "No access token found", null)
+                return@launch
+            }
+
+            try {
+                val response = apiService.getAcceptedOrders("Bearer $accessToken")
+                if (response.isSuccessful) {
+                    val ordersResponse = response.body()
+                    if (ordersResponse != null) {
+                        val orders = ordersResponse.orders
+
+                        saveOrdersLocally(orders)
+                        onResult(true, null, orders)
+                    } else {
+                        Log.e("AcceptedOrdersController", "No valid orders found")
+                        onResult(false, "No orders available", null)
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("AcceptedOrdersController", "API Error: $errorBody")
+                    onResult(false, "Failed to fetch orders", null)
+                }
+            } catch (e: HttpException) {
+                Log.e("AcceptedOrdersController", "HTTP Error: ${e.message()}")
+                onResult(false, "Server error: ${e.message()}", null)
+            } catch (e: Exception) {
+                Log.e("AcceptedOrdersController", "Exception: ${e.localizedMessage}")
+                onResult(false, "Unexpected error: ${e.localizedMessage}", null)
+            }
+        }
+    }
+
     private fun saveOrdersLocally(orders: List<Order>) {
         val sharedPreferences = context.getSharedPreferences("OrdersPrefs", Context.MODE_PRIVATE)
         val ordersJson = Gson().toJson(orders)
@@ -137,7 +176,7 @@ class OrderController(
             val response = apiService.getUserOrders("Bearer $accessToken", userId)
 
             if (response.isSuccessful) {
-                response.body()?.orders?.orders  // ✅ Extract the correct list
+                response.body()?.orders?.orders
             } else {
                 Log.e("OrderController", "Failed to fetch orders: ${response.message()}")
                 null
@@ -148,6 +187,58 @@ class OrderController(
         } catch (e: Exception) {
             Log.e("OrderController", "Unexpected Error: ${e.localizedMessage}")
             null
+        }
+    }
+
+    fun acceptOrder(orderCode: String, userId: Int, onResult: (Boolean, String?) -> Unit) {
+        lifecycleOwner.lifecycleScope.launch {
+            val apiService = RetrofitInstance.create(ApiService::class.java)
+            val accessToken = TokenManager.getToken()
+
+            if (accessToken.isNullOrEmpty()) {
+                onResult(false, "No access token found")
+                return@launch
+            }
+
+            try {
+                val response = apiService.acceptOrder("Bearer $accessToken", AcceptOrderRequest(orderCode, userId))
+                if (response.isSuccessful) {
+                    onResult(true, "Order accepted successfully")
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("OrderController", "API Error: $errorBody")
+                    onResult(false, "Failed to accept order")
+                }
+            } catch (e: Exception) {
+                Log.e("OrderController", "Exception: ${e.localizedMessage}")
+                onResult(false, "Unexpected error: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun readyOrder(orderCode: String, userId: Int, onResult: (Boolean, String?) -> Unit) {
+        lifecycleOwner.lifecycleScope.launch {
+            val apiService = RetrofitInstance.create(ApiService::class.java)
+            val accessToken = TokenManager.getToken()
+
+            if (accessToken.isNullOrEmpty()) {
+                onResult(false, "No access token found")
+                return@launch
+            }
+
+            try {
+                val response = apiService.readyOrder("Bearer $accessToken", ReadyOrderRequest(orderCode))
+                if (response.isSuccessful) {
+                    onResult(true, "Order accepted successfully")
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("OrderController", "API Error: $errorBody")
+                    onResult(false, "Failed to accept order")
+                }
+            } catch (e: Exception) {
+                Log.e("OrderController", "Exception: ${e.localizedMessage}")
+                onResult(false, "Unexpected error: ${e.localizedMessage}")
+            }
         }
     }
 }

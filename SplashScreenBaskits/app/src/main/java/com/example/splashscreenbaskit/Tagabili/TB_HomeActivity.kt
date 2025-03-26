@@ -4,14 +4,18 @@ import Order
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,19 +31,19 @@ import com.example.splashscreenbaskit.R
 import com.example.splashscreenbaskit.controllers.OrderController
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
 import com.google.accompanist.swiperefresh.*
-import kotlinx.coroutines.delay
+
 
 @Composable
 fun TB_HomeContent(navController: NavController) {
-    val scrollState = rememberScrollState()
-    var selectedLocation by remember { mutableStateOf("Select location --") }
+    val scrollState = rememberSaveable { mutableStateOf(0) }
+    var selectedLocation by rememberSaveable { mutableStateOf("Select location --") }
     var orders by remember { mutableStateOf<List<Order>>(emptyList()) }
-    var loading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var refreshing by remember { mutableStateOf(false) }
+    var loading by rememberSaveable { mutableStateOf(false) }
+    var errorMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    var refreshing by rememberSaveable { mutableStateOf(false) }
 
-    var totalDagupanOrders by remember { mutableStateOf(0) }
-    var totalCalasiaoOrders by remember { mutableStateOf(0) }
+    var totalDagupanOrders by rememberSaveable { mutableStateOf(0) }
+    var totalCalasiaoOrders by rememberSaveable { mutableStateOf(0) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
@@ -48,25 +52,34 @@ fun TB_HomeContent(navController: NavController) {
     val fetchOrders = { location: String ->
         loading = true
         refreshing = true
-        OrderController(lifecycleOwner, context).fetchOrders(
-            onResult = { success, message, fetchedOrders ->
-                loading = false
-                refreshing = false
-                if (success && fetchedOrders != null) {
-                    orders = fetchedOrders
-                    errorMessage = null
-                } else {
-                    orders = emptyList()
-                    errorMessage = message
-                }
-            },
-            location = location
-        )
 
-        OrderController(lifecycleOwner, context).fetchTotalOrdersByLocation { success, message, totals ->
-            if (success && totals != null) {
-                totalDagupanOrders = totals.total_dagupan_orders
-                totalCalasiaoOrders = totals.total_calasiao_orders
+        val orderController = OrderController(lifecycleOwner, context)
+
+        when (location) {
+            "Your Orders" -> {
+                orderController.fetchAcceptedOrders { success, message, fetchedOrders ->
+                    loading = false
+                    refreshing = false
+                    orders = if (success) fetchedOrders ?: emptyList() else emptyList()
+                    errorMessage = if (!success) message else null
+                }
+            }
+            else -> {
+                orderController.fetchOrders(
+                    location = location,
+                    onResult = { success, message, fetchedOrders ->
+                        loading = false
+                        refreshing = false
+                        orders = if (success) fetchedOrders?.filter { it.status == "Pending" } ?: emptyList() else emptyList()
+                        errorMessage = if (!success) message else null
+                    }
+                )
+                orderController.fetchTotalOrdersByLocation { success, message, totals ->
+                    if (success && totals != null) {
+                        totalDagupanOrders = totals.total_dagupan_orders
+                        totalCalasiaoOrders = totals.total_calasiao_orders
+                    }
+                }
             }
         }
     }
@@ -75,13 +88,18 @@ fun TB_HomeContent(navController: NavController) {
         fetchOrders(selectedLocation)
     }
 
+    LaunchedEffect(Unit) {
+        if (selectedLocation != "Select location --") {
+            fetchOrders(selectedLocation)
+        }
+    }
+
     LaunchedEffect(selectedLocation) {
         if (selectedLocation != "Select location --") {
             fetchOrders(selectedLocation)
         }
     }
 
-    // Wrap content in SwipeRefresh
     SwipeRefresh(
         state = swipeRefreshState,
         onRefresh = {
@@ -89,19 +107,26 @@ fun TB_HomeContent(navController: NavController) {
             fetchOrders(selectedLocation)
         }
     ) {
-        Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
-            Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = Color.White
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState(scrollState.value)),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Box(
                     modifier = Modifier
-                        .height(250.dp)
+                        .height(363.dp)
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(bottomStart = 50.dp, bottomEnd = 50.dp))
                         .background(Color(0xFF1d7151))
                 ) {
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .verticalScroll(scrollState),
+                            .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Spacer(modifier = Modifier.height(45.dp))
@@ -111,7 +136,7 @@ fun TB_HomeContent(navController: NavController) {
                             contentDescription = "Logo",
                             modifier = Modifier
                                 .size(70.dp)
-                                .padding(bottom = 16.dp)
+                                .padding(bottom = 15.dp)
                         )
 
                         Text(
@@ -148,7 +173,8 @@ fun TB_HomeContent(navController: NavController) {
                             ) {
                                 Column(
                                     modifier = Modifier.padding(top = 65.dp, end = 8.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
                                 ) {
                                     Text(
                                         text = "Dagupan",
@@ -170,7 +196,8 @@ fun TB_HomeContent(navController: NavController) {
 
                                 Column(
                                     modifier = Modifier.padding(top = 65.dp, end = 8.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
                                 ) {
                                     Text(
                                         text = "Calasiao",
@@ -192,34 +219,67 @@ fun TB_HomeContent(navController: NavController) {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(100.dp))
+                Spacer(modifier = Modifier.height(40.dp))
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 20.dp, end = 20.dp)
+                        .padding(horizontal = 20.dp)
                 ) {
-                    Text(
-                        text = "ORDERS",
-                        fontFamily = poppinsFontFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        color = Color.Black
-                    )
+                    Row(modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "ORDERS",
+                            fontFamily = poppinsFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = Color.Black
+                        )
+                        Spacer(modifier = Modifier.width(200.dp))
+                        IconButton(
+                            onClick = { navController.navigate("TB_AccountDetails") },
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .background(Color.Black, shape = CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(20.dp),
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = "Account",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(15.dp))
 
-                    // Location Selector
                     LocationButton(selectedLocation, { location ->
                         selectedLocation = location
                     })
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(50.dp))
 
                     if (loading) {
-                        Text("Loading orders...", color = Color.Black)
+                        Text("Loading orders...",
+                            color = Color.Black,
+                            fontFamily = poppinsFontFamily,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 14.sp
+                        )
                     } else if (errorMessage != null) {
-                        Text("Error: $errorMessage", color = Color.Red)
+                        Text("Error: $errorMessage",
+                            color = Color.Red,
+                            fontFamily = poppinsFontFamily,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 14.sp
+                        )
                     } else if (orders.isEmpty()) {
                         DefaultScreen()
                     } else {
@@ -233,14 +293,31 @@ fun TB_HomeContent(navController: NavController) {
 
 @Composable
 fun LocationButton(selectedLocation: String, onLocationChange: (String) -> Unit) {
-    val locations = listOf("Select location --", "Dagupan", "Calasiao")
+    val locations = listOf("Dagupan", "Calasiao", "Your Orders")
     var expanded by remember { mutableStateOf(false) }
+
 
     Button(
         onClick = { expanded = !expanded },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 0.5.dp,
+                color = Color.Black,
+                shape = RoundedCornerShape(20.dp)
+            )
+            .clip(RoundedCornerShape(20.dp)),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.White,
+            contentColor = Color.Black
+        )
     ) {
-        Text(text = selectedLocation, fontFamily = poppinsFontFamily, fontWeight = FontWeight.Medium)
+        Text(
+            text = selectedLocation,
+            fontFamily = poppinsFontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 14.sp
+        )
     }
 
     if (expanded) {
@@ -254,22 +331,43 @@ fun LocationButton(selectedLocation: String, onLocationChange: (String) -> Unit)
 fun LocationDialog(locations: List<String>, onLocationChange: (String) -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Select Location") },
+        title = { Text(
+            "Select Location",
+            fontFamily = poppinsFontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 14.sp,
+            color = Color.Black
+        ) },
         text = {
             Column {
                 locations.forEach { location ->
-                    TextButton(onClick = {
-                        onLocationChange(location)
-                        onDismiss()
-                    }) {
-                        Text(location, fontFamily = poppinsFontFamily, fontWeight = FontWeight.Medium)
+                    TextButton(
+                        onClick = {
+                            onLocationChange(location)
+                            onDismiss()
+                        }) {
+                        Text(location,
+                            fontFamily = poppinsFontFamily,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 14.sp,
+                            color = Color.Black
+                        )
                     }
                 }
             }
         },
         confirmButton = {
-            Button(onClick = onDismiss) {
-                Text("Close")
+            Button(
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE22727)),
+                onClick = onDismiss
+            ) {
+                Text(
+                    "Close",
+                    fontFamily = poppinsFontFamily,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 14.sp,
+                    color = Color.White
+                )
             }
         }
     )
@@ -283,7 +381,7 @@ fun OrdersList(orders: List<Order>, navController: NavController) {
             when (order.product_origin.uppercase()) {
                 "DAGUPAN" -> DagupanOrders(order, navController)
                 "CALASIAO" -> CalasiaoOrders(order, navController)
-                else -> {}
+                else -> YourOrders(order, navController)
             }
         }
     }
@@ -294,22 +392,29 @@ fun DagupanOrders(order: Order, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)
-            .padding(8.dp),
+            .padding(bottom = 8.dp)
+            .height(60.dp)
+            .clickable { navController.navigate("tb_orders/${order.user_id}") },
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF2F2F2)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Row {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.baskit_green),
                 contentDescription = "baskit green",
                 modifier = Modifier
-                    .size(70.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(topStart = 10.dp, topEnd = 20.dp, bottomStart = 10.dp, bottomEnd = 20.dp))
             )
+
             Column(
-                modifier = Modifier.padding(start = 16.dp, top = 12.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 20.dp)
             ) {
                 Text(
                     text = "${order.firstname} ${order.lastname}",
@@ -319,29 +424,26 @@ fun DagupanOrders(order: Order, navController: NavController) {
                 )
                 Text(
                     text = "${order.total_orders} items",
-                    fontSize = 12.sp,
+                    fontSize = 10.sp,
                     fontFamily = poppinsFontFamily,
                     fontWeight = FontWeight.Medium,
                     color = Color(0xFF737272)
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f))
-
-            Row(
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .align(Alignment.CenterVertically)
-            ) {
-                TextButton(onClick = { navController.navigate("tb_orders/${order.user_id}")}) {
-                    Text("View Order", fontFamily = poppinsFontFamily, fontWeight = FontWeight.Medium)
-                }
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "View Order",
-                    modifier = Modifier.size(15.dp)
-                )
+            val statusColor = when {
+                order.status == "Pending" -> Color(0xFFE22727) // Red
+                order.status == "Accepted" && order.is_ready == "Pending" -> Color(0xFFFBC02D) // Yellow
+                order.is_ready == "Ready" -> Color(0xFF1d7151) // Green
+                else -> Color.Gray
             }
+
+            Box(
+                modifier = Modifier
+                    .size(20.dp)
+                    .background(statusColor, shape = CircleShape)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
         }
     }
 }
@@ -351,22 +453,29 @@ fun CalasiaoOrders(order: Order, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)
-            .padding(8.dp),
+            .padding(bottom = 8.dp)
+            .height(60.dp)
+            .clickable { navController.navigate("tb_orders/${order.user_id}") },
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF2F2F2)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Row {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.baskit_green),
                 contentDescription = "baskit green",
                 modifier = Modifier
-                    .size(70.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(topStart = 10.dp, topEnd = 20.dp, bottomStart = 10.dp, bottomEnd = 20.dp))
             )
+
             Column(
-                modifier = Modifier.padding(start = 16.dp, top = 12.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 20.dp)
             ) {
                 Text(
                     text = "${order.firstname} ${order.lastname}",
@@ -376,29 +485,87 @@ fun CalasiaoOrders(order: Order, navController: NavController) {
                 )
                 Text(
                     text = "${order.total_orders} items",
-                    fontSize = 12.sp,
+                    fontSize = 10.sp,
                     fontFamily = poppinsFontFamily,
                     fontWeight = FontWeight.Medium,
                     color = Color(0xFF737272)
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            val statusColor = when {
+                order.status == "Pending" -> Color(0xFFE22727) // Red
+                order.status == "Accepted" && order.is_ready == "Pending" -> Color(0xFFFBC02D) // Yellow
+                order.is_ready == "Ready" -> Color(0xFF1d7151) // Green
+                else -> Color.Gray
+            }
 
-            Row(
+            Box(
                 modifier = Modifier
-                    .padding(end = 16.dp)
-                    .align(Alignment.CenterVertically)
+                    .size(20.dp)
+                    .background(statusColor, shape = CircleShape)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+        }
+    }
+}
+
+@Composable
+fun YourOrders(order: Order, navController: NavController) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+            .height(60.dp)
+            .clickable { navController.navigate("tb_orders/${order.user_id}") },
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF2F2F2)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.baskit_green),
+                contentDescription = "baskit green",
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(topStart = 10.dp, topEnd = 20.dp, bottomStart = 10.dp, bottomEnd = 20.dp))
+            )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 20.dp)
             ) {
-                TextButton(onClick = { navController.navigate("tb_orders/${order.user_id}")}) {
-                    Text("View Order", fontFamily = poppinsFontFamily, fontWeight = FontWeight.Medium)
-                }
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "View Order",
-                    modifier = Modifier.size(15.dp)
+                Text(
+                    text = "${order.firstname} ${order.lastname}",
+                    fontSize = 16.sp,
+                    fontFamily = poppinsFontFamily,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = "${order.total_orders} items",
+                    fontSize = 10.sp,
+                    fontFamily = poppinsFontFamily,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF737272)
                 )
             }
+
+            val statusColor = when {
+                order.status == "Pending" -> Color(0xFFE22727) // Red
+                order.status == "Accepted" && order.is_ready == "Pending" -> Color(0xFFFBC02D) // Yellow
+                order.is_ready == "Ready" -> Color(0xFF1d7151) // Green
+                else -> Color.Gray
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(20.dp)
+                    .background(statusColor, shape = CircleShape)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
         }
     }
 }

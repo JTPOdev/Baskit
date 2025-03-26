@@ -1,5 +1,7 @@
 package com.example.splashscreenbaskit.api
 
+import AcceptOrderRequest
+import Announcement
 import CartItem
 import CartResponse
 import LoginRequest
@@ -8,9 +10,9 @@ import Order
 import OrderResponse
 import OrderResponses
 import Product
-import ProductOriginResponse
 import ProductResponse
 import ProductsResponse
+import ReadyOrderRequest
 import RegisterRequest
 import RegisterResponse
 import StoreRequestResponse
@@ -87,6 +89,12 @@ interface ApiService {
         @Header("Authorization") authorization: String
     ): Response<StoreResponse>
 
+    @GET("store/user/{user_id}")
+    suspend fun getStoreDetailsUserID(
+        @Header("Authorization") authorization: String,
+        @Path("user_id") userId: Int
+    ): Response<StoreResponse>
+
     @Multipart
     @POST("store/image")
     suspend fun uploadStoreImage(
@@ -97,6 +105,11 @@ interface ApiService {
     @GET("store/products")
     suspend fun getProductDetails(
         @Header("Authorization") authorization: String
+    ): Response<List<ProductsResponse>>
+
+    @GET("store/product/{id}")
+    suspend fun getProductDetailsByID(
+        @Path("id") storeId: Int
     ): Response<List<ProductsResponse>>
 
 
@@ -168,7 +181,29 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Query("user_id") userId: Int
     ): Response<OrderResponses>
+
+    @POST("order/accept")
+    suspend fun acceptOrder(
+        @Header("Authorization") token: String,
+        @Body request: AcceptOrderRequest
+    ): Response<Unit>
+
+    @POST("order/ready")
+    suspend fun readyOrder(
+        @Header("Authorization") token: String,
+        @Body request: ReadyOrderRequest
+    ): Response<Unit>
+
+    @GET("accepted/orders")
+    suspend fun getAcceptedOrders(
+        @Header("Authorization") token: String
+    ): Response<OrderResponse>
+
+    @GET("announcement/all/images")
+    suspend fun getSlideImages(): Announcement
 }
+
+
 
 
 

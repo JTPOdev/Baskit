@@ -6,8 +6,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import com.google.gson.GsonBuilder
 import java.util.concurrent.TimeUnit
 
-//Jorose House 192.168.100.111
-//Enrollment 24_24 10.40.97.123
 object RetrofitInstance {
     private const val BASE_URL = "http://192.168.100.111:8000/"
     // Add the logging interceptor

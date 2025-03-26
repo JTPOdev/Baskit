@@ -292,7 +292,7 @@ h2 {
 
 .change-password {
     font-size: 14px;
-    color: #007bff;
+    color: #171717;
     text-decoration: none;
     display: block;
 }
@@ -363,21 +363,33 @@ h2 {
     margin-right: 5px;
 }
 
-.cancel {
-    background-color: #d9534f;
-    color: white;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    flex: 1;
-    margin-left: 5px;
-}
-
 #updateBtn:hover {
     background-color: #1D7151;
 }
 
-.cancel:hover {
-    background-color: #c9302c;
+.darken {
+    filter: brightness(0.5);
+}
+
+.password-container {
+    width: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-container input {
+    width: 100%;
+    padding-right: 50px;
+    margin-bottom: 15px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    color: #171717;
+    margin-bottom: 15px;
 }

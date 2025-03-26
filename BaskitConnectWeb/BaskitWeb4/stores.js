@@ -249,10 +249,3 @@ document.getElementById("backButton").addEventListener("click", function () {
     allButton.classList.add("active");
 });
 
-document.getElementById("logoutButton").addEventListener("click", function () {
-    if (confirm("Are you sure you want to log out?")) {
-        sessionStorage.clear();
-        localStorage.clear();
-        window.location.href = "login.html";
-    }
-});

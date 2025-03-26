@@ -2,7 +2,6 @@ package com.example.splashscreenbaskit.controllers
 
 
 import Product
-import ProductOriginResponse
 import ProductResponse
 import ProductsResponse
 import android.content.Context

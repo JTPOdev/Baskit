@@ -112,7 +112,6 @@ fun AccountActivity(navController: NavController) {
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // Change text based on role
                 Text(
                     text = if (userRole == "Consumer") "Start Selling >" else "My Store >",
                     fontFamily = poppinsFontFamily,

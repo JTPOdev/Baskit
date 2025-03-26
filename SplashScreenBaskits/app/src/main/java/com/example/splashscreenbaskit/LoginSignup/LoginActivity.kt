@@ -245,9 +245,9 @@ fun LoginActivity(navController: NavController) {
                     isLoading = false
                     if (success) {
                         when (role) {
-                            "Consumer" -> navController.navigate("HomeActivity")
+                            "Consumer" -> navController.navigate("home")
                             "Tagabili" -> navController.navigate("TB_HomeActivity")
-                            "Seller" -> navController.navigate("HomeActivity"){
+                            "Seller" -> navController.navigate("home"){
                                 popUpTo("LoginActivity") { inclusive = true }
                             }
                             else -> Toast.makeText(context, "Unknown role: $role", Toast.LENGTH_SHORT).show()

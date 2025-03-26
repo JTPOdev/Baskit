@@ -5,12 +5,14 @@ require_once __DIR__ . '/../controller/ProductController.php';
 require_once __DIR__ . '/../controller/CartController.php';
 require_once __DIR__ . '/../controller/AdminController.php';
 require_once __DIR__ . '/../controller/OrderController.php';
+require_once __DIR__ . '/../controller/AnnouncementController.php';
 require_once __DIR__ . '/../model/User.php';
 require_once __DIR__ . '/../model/Admin.php';
 require_once __DIR__ . '/../model/Store.php';
 require_once __DIR__ . '/../model/Product.php';
 require_once __DIR__ . '/../model/Cart.php';
 require_once __DIR__ . '/../model/Order.php';
+require_once __DIR__ . '/../model/Announcement.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 
@@ -174,6 +176,11 @@ $router->post('/admin/logout', function() use ($conn) {
     echo json_encode(AdminController::logout($data, $conn));
 });
 
+$router->get('/admin/profile', function() use ($conn) {
+    echo json_encode(AdminController::getAdminProfile($conn));
+}, true, true);
+
+
 
 // ---------- STORE ---------- //
 
@@ -241,7 +248,12 @@ $router->delete('/store/delete/{id}', function($storeId) use ($conn) {
 $router->get('/store/mystore', function() use ($conn) {
     header('Content-Type: application/json');
     $authUserId = AuthMiddleware::checkAuth();
-    echo json_encode(StoreController::getStoreByUser($authUserId, $conn));
+    echo json_encode(StoreController::getStoreByUsers($authUserId, $conn));
+}, true, false);
+
+$router->get('/store/user/{user_id}', function($user_id) use ($conn) {
+    header('Content-Type: application/json');
+    echo json_encode(StoreController::getStoreByUser($user_id, $conn));
 }, true, false);
 
 // ---------- PRODUCT ---------- //
@@ -272,6 +284,10 @@ $router->delete('/product/delete/{id}', function($id) use ($conn) {
 
 $router->get('/store/products', function() use ($conn) {
     ProductController::getAllProductsByStore($conn);
+});
+
+$router->get('/store/product/{id}', function($id) use ($conn) {
+    ProductController::getAllProductsByStoreId($conn, $id);
 });
 
 $router->get('/products', function() use ($conn) {
@@ -335,8 +351,6 @@ $router->put('/cart/update', function() use ($conn) {
 
 $router->delete('/cart/remove', function() use ($conn) {
     $authUserId = AuthMiddleware::checkAuth();
-    
-    // Read JSON body
     $data = json_decode(file_get_contents("php://input"), true);
 
     if (!isset($data['product_id'], $data['product_portion'])) {
@@ -344,7 +358,6 @@ $router->delete('/cart/remove', function() use ($conn) {
         echo json_encode(['message' => 'Missing required fields: product_id or product_portion']);
         exit;
     }
-
     echo json_encode(CartController::removeFromCart($authUserId, $data, $conn));
 }, false, true);
 
@@ -369,7 +382,6 @@ $router->post('/order/accept', function() use ($conn) {
         echo json_encode(['message' => 'Unauthorized']);
         exit;
     }
-
     $data = json_decode(file_get_contents("php://input"), true);
 
     if (!isset($data['order_code']) || !isset($data['user_id'])) {
@@ -377,7 +389,6 @@ $router->post('/order/accept', function() use ($conn) {
         echo json_encode(['message' => 'Missing order_code or user_id']);
         exit;
     }
-
     echo json_encode(OrderController::acceptAllOrders($tagabiliId, $data['user_id'], $data['order_code'], $conn));
 }, false, true);
 
@@ -389,8 +400,19 @@ $router->post('/order/complete', function() use ($conn) {
         echo json_encode(['message' => 'Missing order_code']);
         exit;
     }
-
     echo json_encode(Order::completeOrderByCode($data['order_code'], $conn));
+}, false, true);
+
+$router->post('/order/ready', function() use ($conn) {
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    if (!isset($data['order_code'])) {
+        header('HTTP/1.1 400 Bad Request');
+        echo json_encode(['message' => 'Missing order_code']);
+        exit;
+    }
+
+    echo json_encode(Order::updateOrderReady($data['order_code'], $conn));
 }, false, true);
 
 $router->get('/orders', function() use ($conn) { 
@@ -402,16 +424,12 @@ $router->get('/orders', function() use ($conn) {
         exit;
     }   
 
-    // Get user_id from query parameter
     if (!isset($_GET['user_id'])) {
         header('HTTP/1.1 400 Bad Request');
         echo json_encode(['message' => 'Missing user_id parameter']);
         exit;
     }
-
-    $userId = intval($_GET['user_id']); // Convert to integer for safety
-
-    // Fetch orders for the given user_id
+    $userId = intval($_GET['user_id']);
     $orders = Order::getUserOrders($userId, $conn);
     
     header('Content-Type: application/json');
@@ -419,16 +437,13 @@ $router->get('/orders', function() use ($conn) {
 }, true);
 
 $router->get('/all/orders', function() use ($conn) {
-
-    // Validate token (no need for a specific user ID)
     $userId = AuthMiddleware::checkAuth(); 
+
     if (!$userId) {
         header('HTTP/1.1 401 Unauthorized');
         echo json_encode(['message' => 'Unauthorized']);
         exit;
     }   
-
-    // Fetch all users with their orders
     $ordersData = Order::getAllUsersOrders($conn);
     echo json_encode(['orders' => $ordersData]);
 }, true);
@@ -445,6 +460,27 @@ $router->get('/orders/total/origin', function () use ($conn) {
     echo json_encode($totals);
 },true);
 
+$router->get('/accepted/orders', function() use ($conn) {
+    $tagabiliId = AuthMiddleware::checkAuth(); 
+
+    if (!$tagabiliId) {
+        header('HTTP/1.1 401 Unauthorized');
+        echo json_encode(['message' => 'Unauthorized']);
+        exit;
+    }   
+    $ordersData = Order::getAcceptedOrdersByTagabili($conn, $tagabiliId);
+    echo json_encode(['orders' => $ordersData]);
+}, true);
+
+// ---------- ANNOUNCEMENT --------- //
+$router->post('/announcement/image', function() use ($conn) {
+    AnnouncementController::updateSlideImage($conn);
+});
+
+
+$router->get('/announcement/all/images', function() use ($conn) {
+    AnnouncementController::getSlideImages($conn);
+});
 // ---------- 404 NOT FOUND ---------- //
 $router->setNotFound(function() {
     echo json_encode(['message' => 'Route not found']);

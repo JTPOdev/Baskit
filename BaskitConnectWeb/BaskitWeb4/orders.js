@@ -66,10 +66,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const viewOrderHistoryBtn = document.getElementById("viewOrderHistory");
     const orderDatePicker = document.getElementById("orderDatePicker");
     const today = new Date().toISOString().split("T")[0];
+    const completeOrderBtn = document.getElementById("completeOrderBtn");
+    const orderCodeInput = document.getElementById("orderCode");
 
     const orders = [
         {
-            id: "67890",
+            id: "1450",
             customer: "James",
             date: "2025-03-11",
             status: "Pending",
@@ -93,14 +95,14 @@ document.addEventListener("DOMContentLoaded", function () {
             id: "11223",
             customer: "Laurence",
             date: "2025-03-10",
-            status: "Delivered",
+            status: "Pending",
             items: [
                 { name: "Apple", price: "₱20", store: "ABC Store" },
                 { name: "Orange", price: "₱22", store: "ABC Store" },
             ]
         },
         {
-            id: "67890",
+            id: "3590",
             customer: "James1",
             date: "2025-03-19",
             status: "Pending",
@@ -110,79 +112,9 @@ document.addEventListener("DOMContentLoaded", function () {
             ]
         },
         {
-            id: "67890",
-            customer: "James2",
-            date: "2025-03-19",
-            status: "Pending",
-            items: [
-                { name: "Apple", price: "₱20", store: "ABC Store" },
-                { name: "Orange", price: "₱22", store: "ABC Store" },
-            ]
-        },
-        {
-            id: "67890",
-            customer: "James3",
-            date: "2025-03-19",
-            status: "Pending",
-            items: [
-                { name: "Apple", price: "₱20", store: "ABC Store" },
-                { name: "Orange", price: "₱22", store: "ABC Store" },
-            ]
-        },
-        {
-            id: "67890",
-            customer: "James4",
-            date: "2025-03-19",
-            status: "Pending",
-            items: [
-                { name: "Apple", price: "₱20", store: "ABC Store" },
-                { name: "Orange", price: "₱22", store: "ABC Store" },
-            ]
-        },
-        {
-            id: "67890",
-            customer: "James5",
-            date: "2025-03-19",
-            status: "Pending",
-            items: [
-                { name: "Apple", price: "₱20", store: "ABC Store" },
-                { name: "Orange", price: "₱22", store: "ABC Store" },
-            ]
-        },
-        {
-            id: "67890",
-            customer: "James6",
-            date: "2025-03-19",
-            status: "Pending",
-            items: [
-                { name: "Apple", price: "₱20", store: "ABC Store" },
-                { name: "Orange", price: "₱22", store: "ABC Store" },
-            ]
-        },
-        {
-            id: "67890",
-            customer: "James7",
-            date: "2025-03-19",
-            status: "Pending",
-            items: [
-                { name: "Apple", price: "₱20", store: "ABC Store" },
-                { name: "Orange", price: "₱22", store: "ABC Store" },
-            ]
-        },
-        {
-            id: "67890",
-            customer: "James8",
-            date: "2025-03-19",
-            status: "Pending",
-            items: [
-                { name: "Apple", price: "₱20", store: "ABC Store" },
-                { name: "Orange", price: "₱22", store: "ABC Store" },
-            ]
-        },
-        {
-            id: "67890",
+            id: "4567",
             customer: "James9",
-            date: "2025-03-19",
+            date: "2025-03-23",
             status: "Pending",
             items: [
                 { name: "Apple", price: "₱20", store: "ABC Store" },
@@ -190,9 +122,9 @@ document.addEventListener("DOMContentLoaded", function () {
             ]
         },
         {
-            id: "67890",
-            customer: "James10",
-            date: "2025-03-19",
+            id: "1234",
+            customer: "James99",
+            date: "2025-03-23",
             status: "Pending",
             items: [
                 { name: "Apple", price: "₱20", store: "ABC Store" },
@@ -203,29 +135,76 @@ document.addEventListener("DOMContentLoaded", function () {
     ];
 
     function displayOrdersByDate(date) {
-        userList.innerHTML = ""; 
-
+        userList.innerHTML = "";
+    
+        let completedOrders = JSON.parse(localStorage.getItem("completedOrders")) || {};
+        
         const filteredOrders = orders.filter(order => order.date === date);
         if (filteredOrders.length === 0) {
             userList.innerHTML = "<div class='user-card'>No orders found for this date.</div>";
             return;
         }
-
+    
         filteredOrders.forEach(order => {
+            const savedOrder = completedOrders[order.id] || {};
+            const status = savedOrder.status || order.status;
+            const savedCode = savedOrder.code || "";
+    
             const orderRow = document.createElement("div");
             orderRow.classList.add("user-card");
             orderRow.innerHTML = `
                 <div>${order.id}</div>
                 <div>${order.customer}</div>
                 <div>${order.date}</div>
-                <div>${order.status}</div>
+                <div>${status}</div>
                 <div>
                     <button class="view-order-btn" data-id="${order.id}">View Order</button>
                 </div>
             `;
             userList.appendChild(orderRow);
+    
+            document.addEventListener("click", function (event) {
+                if (event.target.classList.contains("view-order-btn")) {
+                    const orderId = event.target.getAttribute("data-id");
+                    const order = orders.find(o => o.id === orderId);
+                    const completedOrders = JSON.parse(localStorage.getItem("completedOrders")) || {};
+                    
+                    if (order) {
+                        const savedOrder = completedOrders[orderId] || {};
+                        const status = savedOrder.status || order.status;
+                        const savedCode = savedOrder.code || "";
+            
+                        orderDetails.innerHTML = `
+                            <p><strong>Order ID:</strong> ${order.id}</p>
+                            <p><strong>Customer:</strong> ${order.customer}</p>
+                            <p><strong>Date:</strong> ${order.date}</p>
+                            <p><strong>Status:</strong> ${status}</p>
+                        `;
+            
+                        if (status === "Completed") {
+                            orderCodeInput.value = savedCode;  
+                            orderCodeInput.disabled = true;
+                            completeOrderBtn.disabled = true;
+                            completeOrderBtn.textContent = "Order Completed";
+                            completeOrderBtn.style.backgroundColor = "#f5f5f5"; 
+                        } else {
+                            orderCodeInput.value = ""; 
+                            orderCodeInput.disabled = false;
+                            completeOrderBtn.disabled = false;
+                            completeOrderBtn.textContent = "Complete Order";
+                            completeOrderBtn.style.backgroundColor = ""; 
+                        }
+            
+                        popup.style.display = "flex";
+                    }
+                }
+            });
+            
         });
     }
+    
+    
+
 
     orderDatePicker.value = today;
 
@@ -297,7 +276,44 @@ document.addEventListener("DOMContentLoaded", function () {
                 popup.style.display = "flex";
             }
         }
+        
     });
+
+    completeOrderBtn.addEventListener("click", function () {
+        const enteredCode = orderCodeInput.value.trim();
+        const orderIdElement = document.querySelector("#orderDetails p strong");
+    
+        if (!orderIdElement) return;
+    
+        const orderId = orderIdElement.nextSibling.textContent.trim();
+        const order = orders.find(o => o.id === orderId); 
+        const orderStatusElement = document.querySelector(`.view-order-btn[data-id="${orderId}"]`)
+            ?.closest(".user-card")
+            ?.querySelector("div:nth-child(4)");
+    
+        if (enteredCode === orderId && order) {
+            order.status = "Completed";
+            orderStatusElement.textContent = "Completed"; 
+            
+            let completedOrders = JSON.parse(localStorage.getItem("completedOrders")) || {};
+            completedOrders[orderId] = { status: "Completed", code: enteredCode }; 
+            localStorage.setItem("completedOrders", JSON.stringify(completedOrders));
+    
+            completeOrderBtn.disabled = true;
+            completeOrderBtn.textContent = "Order Completed";
+            completeOrderBtn.style.backgroundColor = "#f5f5f5"; 
+            completeOrderBtn.style.color = "#000000"
+            orderCodeInput.value = enteredCode; 
+            orderCodeInput.disabled = true; 
+    
+            popup.style.display = "none"; 
+        } else {
+            alert("Incorrect order code. Please try again.");
+        }
+    });
+    
+    
+
 
     closeButton.addEventListener("click", function () {
         popup.style.display = "none";
@@ -306,15 +322,6 @@ document.addEventListener("DOMContentLoaded", function () {
     popup.addEventListener("click", function (event) {
         if (event.target === popup) {
             popup.style.display = "none";
-        }
-    });
-
-    // Logout 
-    document.getElementById("logoutButton").addEventListener("click", function () {
-        if (confirm("Are you sure you want to log out?")) {
-            sessionStorage.clear();
-            localStorage.clear();
-            window.location.href = "login.html";
         }
     });
 });

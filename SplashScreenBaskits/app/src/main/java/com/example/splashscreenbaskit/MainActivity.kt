@@ -3,6 +3,7 @@ package com.example.splashscreenbaskit
 import EditStoreScreen
 import Order
 import ProductsResponse
+import StoreScreen
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -28,6 +29,7 @@ import com.example.splashscreenbaskit.AccountDetails.RequestSentScreen
 import com.example.splashscreenbaskit.AccountDetails.RulesScreen
 import com.example.splashscreenbaskit.AccountDetails.SettingsActivity
 import com.example.splashscreenbaskit.AccountDetails.StoreRequestScreen
+import com.example.splashscreenbaskit.AccountDetails.TB_AccountDetails
 import com.example.splashscreenbaskit.Carts.CartScreen
 import com.example.splashscreenbaskit.Carts.CheckoutScreen
 import com.example.splashscreenbaskit.Home.HomeScreen
@@ -58,8 +60,6 @@ class MainActivity : ComponentActivity() {
             SplashScreenBaskitTheme {
                 val navController = rememberNavController()
 
-                // Initialize CartViewModel here
-
                 NavHost(navController = navController, startDestination = "OnBoardingScreen") {
                     composable("OnBoardingScreen") {
                         OnboardingScreen(navController)
@@ -73,7 +73,7 @@ class MainActivity : ComponentActivity() {
                     composable("AccountActivity") {
                         AccountActivity(navController)
                     }
-                    composable("HomeActivity") {
+                    composable("home") {
                         HomeScreen()
                     }
                     composable(
@@ -142,6 +142,9 @@ class MainActivity : ComponentActivity() {
                     composable("TB_HomeActivity") {
                         TB_HomeContent(navController)
                     }
+                    composable("TB_AccountDetails") {
+                        TB_AccountDetails(navController)
+                    }
                     composable("ProductDisplayScreen") {
                         ProductDisplayScreen(navController)
                     }
@@ -163,9 +166,13 @@ class MainActivity : ComponentActivity() {
                     ) { backStackEntry ->
                         var orders by remember { mutableStateOf<List<Order>>(emptyList()) }
 
-                        val userId = backStackEntry.arguments?.getString("user_id")?.toIntOrNull() ?: 0  // Convert String to Int safely
+                        val userId = backStackEntry.arguments?.getString("user_id")?.toIntOrNull() ?: 0
 
                         TB_OrdersContent(navController, userId)
+                    }
+                    composable("StoreScreen/{storeId}", arguments = listOf(navArgument("storeId") { type = NavType.IntType })) { backStackEntry ->
+                        val storeId = backStackEntry.arguments?.getInt("storeId") ?: 0
+                        StoreScreen(navController, storeId)
                     }
                 }
             }

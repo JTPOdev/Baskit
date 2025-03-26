@@ -99,7 +99,8 @@ data class CartItem(
     val tagabili_lastname: String,
     val tagabili_mobile: String,
     val tagabili_email: String,
-    val order_code: String?
+    val order_code: String?,
+    val is_ready: String
 )
 
 data class StoreRequestResponse(
@@ -128,14 +129,7 @@ data class ProductsResponse(
     val store_name: String,
     val store_phone_number: String,
     val store_address: String,
-)
-
-data class ProductOriginResponse(
-    val product_name: String,
-    val product_price: String,
-    val product_category: String,
-    val product_origin: String,
-    val product_image: String?
+    val store_image: String?
 )
 
 data class Product(
@@ -144,7 +138,6 @@ data class Product(
     val imageUri: Uri?,
     val category: String?
 )
-
 
 data class OrderResponses(
     val orders: OrdersWrapper
@@ -176,16 +169,32 @@ data class Order(
     val tagabili_mobile: String,
     val tagabili_email: String,
     val status: String,
-    val order_code: String?,
+    val order_code: String,
     val created_at: String,
     val firstname: String,
     val lastname: String,
     val mobile_number: String,
-    val total_orders: Int
+    val total_orders: Int,
+    val is_ready: String
 )
 
 
 data class TotalOrdersResponse(
     val total_dagupan_orders: Int,
     val total_calasiao_orders: Int
+)
+
+data class AcceptOrderRequest(
+    val order_code: String,
+    val user_id: Int
+)
+
+data class ReadyOrderRequest(
+    val order_code: String
+)
+
+data class Announcement(
+    val slideimage_1: String,
+    val slideimage_2: String,
+    val slideimage_3: String
 )

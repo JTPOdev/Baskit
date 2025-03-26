@@ -141,8 +141,18 @@ class Store
         return $stmt->get_result()->fetch_assoc();
     }
     
-    public static function getStoreByUserId($conn, $userId) {
+    public static function getStoreByUserIds($conn, $userId) {
         $query = "SELECT * FROM stores WHERE user_id = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        return $result->fetch_assoc() ?: null;
+    }
+
+    public static function getStoreByUserId($conn, $userId) {
+        $query = "SELECT * FROM stores WHERE id = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param("i", $userId);
         $stmt->execute();

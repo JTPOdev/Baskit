@@ -21,7 +21,17 @@ class Product
         $storeOrigin = $store['store_origin'];
         $storeAddress = $store['store_address'];
   
-        $sql = "INSERT INTO products (product_name, product_price, product_category, product_origin, store_id, store_name, owner_name, store_address, store_phone_number, product_image)
+        $sql = "INSERT INTO products (
+        product_name, 
+        product_price, 
+        product_category, 
+        product_origin, 
+        store_id, 
+        store_name, 
+        owner_name, 
+        store_address, 
+        store_phone_number, 
+        product_image)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("sdssisssss", $name, $price, $category, $storeOrigin, $storeId, $storeName, $ownerName, $storeAddress, $storePhone, $productImage);
@@ -47,18 +57,22 @@ class Product
 
     public static function getProductsByStore($conn, $storeId)
     {
-        $sql = "SELECT * FROM products WHERE store_id = ?";
+        $sql = "
+            SELECT p.*, s.store_name, s.store_image, s.store_phone_number, s.owner_name, s.store_address
+            FROM products p
+            JOIN stores s ON p.store_id = s.id
+            WHERE p.store_id = ?";
+        
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $storeId);
         $stmt->execute();
         $result = $stmt->get_result();
-
+    
         return $result->fetch_all(MYSQLI_ASSOC);
     }
-
     
     public static function getProductById($id, $conn) {
-        $sql = "SELECT p.*, s.store_name, s.owner_name, s.store_address, s.store_phone_number 
+        $sql = "SELECT p.*, s.store_name, s.owner_name, s.store_address, s.store_phone_number
                 FROM products p 
                 JOIN stores s ON p.store_id = s.id
                 WHERE p.id = ?";

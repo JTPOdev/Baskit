@@ -214,6 +214,18 @@ class StoreController
     }
     
     // --------- GET STORE BY USER/TOKEN -------- //
+    public static function getStoreByUsers($userId, $conn) {
+        $store = Store::getStoreByUserIds($conn, $userId);
+        
+        if ($store) {
+            header('HTTP/1.1 200 OK');
+            return $store;
+        }
+    
+        header('HTTP/1.1 404 Not Found');
+        return ['message' => 'No store found for this user.'];
+    }
+
     public static function getStoreByUser($userId, $conn) {
         $store = Store::getStoreByUserId($conn, $userId);
         
@@ -225,6 +237,7 @@ class StoreController
         header('HTTP/1.1 404 Not Found');
         return ['message' => 'No store found for this user.'];
     }
+
 
     // --------- ADD STORE IMAGE -------- //
     public static function uploadStoreImageByToken($userId, $conn)
@@ -244,7 +257,7 @@ class StoreController
     
         if (isset($storeImagePath['error'])) {
             header('HTTP/1.1 400 Bad Request');
-            return ['message' => 'File upload failed'];
+            return ['message' => 'File upload failed']; 
         }
     
         // Update store image in the database

@@ -232,10 +232,3 @@ function openFullScreenImage(imageSrc) {
     });
 }
 
-document.getElementById("logoutButton").addEventListener("click", function () {
-    if (confirm("Are you sure you want to log out?")) {
-        sessionStorage.clear();
-        localStorage.clear();
-        window.location.href = "login.html";
-    }
-});

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -60,6 +61,7 @@ fun CheckoutScreen(cartController: CartController, navController: NavController)
     var isPlacingOrder by remember { mutableStateOf(false) }
     var orderResponse by remember { mutableStateOf<String?>(null) }
     val orderCode = cartItems.firstOrNull()?.order_code ?: "N/A"
+    val isReady = cartItems.firstOrNull()?.is_ready ?: "N/A"
 
     var isWaitingForAcceptance by remember { mutableStateOf(false) }
 
@@ -338,12 +340,13 @@ fun CheckoutScreen(cartController: CartController, navController: NavController)
                     fontWeight = FontWeight.Bold,
                     fontFamily = poppinsFontFamily
                 )
-            }
+                }
         }
 
         if (showCodeDialog) {
             YourCodeDialog(
                 orderCode = orderCode,
+                cartController = cartController,
                 onDismiss = { showCodeDialog = false }
             )
         }
@@ -359,9 +362,74 @@ fun CheckoutScreen(cartController: CartController, navController: NavController)
 }
 
 @Composable
-fun YourCodeDialog(orderCode: String, onDismiss: () -> Unit) {
+fun AnimatedProcessingText() {
+    var dotCount by remember { mutableStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(500)
+            dotCount = (dotCount + 1) % 4
+        }
+    }
+
+    Text(
+        text = "Order processing" + ".".repeat(dotCount),
+        color = Color.Gray,
+        fontSize = 18.sp,
+        fontWeight = FontWeight.SemiBold,
+        fontFamily = poppinsFontFamily
+    )
+}
+
+@Composable
+fun AnimatedNowReadyText() {
+    var dotCount by remember { mutableStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(500)
+            dotCount = (dotCount + 1) % 2
+        }
+    }
+
+    Text(
+        text = "Order is now ready\nfor pickup" + "!".repeat(dotCount),
+        color = Color.Gray,
+        fontSize = 18.sp,
+        fontWeight = FontWeight.SemiBold,
+        fontFamily = poppinsFontFamily,
+        textAlign = TextAlign.Center
+    )
+}
+
+@Composable
+fun YourCodeDialog(
+    orderCode: String,
+    cartController: CartController,
+    onDismiss: () -> Unit
+) {
     val context = LocalContext.current
     val viewRef = remember { mutableStateOf<View?>(null) }
+    var currentStatus by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        cartController.fetchCartItems { success, _, items ->
+            if (success && items != null) {
+                currentStatus = items.firstOrNull()?.is_ready ?: "Pending"
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1000)
+            cartController.fetchCartItems { success, _, items ->
+                if (success && items != null) {
+                    currentStatus = items.firstOrNull()?.is_ready ?: "Pending"
+                }
+            }
+        }
+    }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -376,7 +444,6 @@ fun YourCodeDialog(orderCode: String, onDismiss: () -> Unit) {
                 modifier = Modifier.padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Close Button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -408,16 +475,15 @@ fun YourCodeDialog(orderCode: String, onDismiss: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // View to be captured
                 AndroidView(
                     factory = { ctx ->
                         val textView = TextView(ctx).apply {
                             text = orderCode
                             textSize = 32f
                             setTypeface(typeface, Typeface.BOLD)
-                            setBackgroundColor(android.graphics.Color.parseColor("#B7DDCF")) // FIXED
+                            setBackgroundColor(android.graphics.Color.parseColor("#B7DDCF"))
                             setPadding(30, 10, 30, 10)
-                            setTextColor(android.graphics.Color.BLACK) // FIXED
+                            setTextColor(android.graphics.Color.BLACK)
                             gravity = Gravity.CENTER
                         }
                         viewRef.value = textView
@@ -430,13 +496,10 @@ fun YourCodeDialog(orderCode: String, onDismiss: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                Text(
-                    text = "Order processing...",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = poppinsFontFamily,
-                    color = Color(0xFF8C8C8C)
-                )
+                when (currentStatus) {
+                    "Pending" -> AnimatedProcessingText()
+                    "Ready" -> AnimatedNowReadyText()
+                }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -468,6 +531,7 @@ fun YourCodeDialog(orderCode: String, onDismiss: () -> Unit) {
         }
     }
 }
+
 
 fun saveViewAsImage(context: Context, view: View) {
     val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
@@ -503,13 +567,6 @@ fun saveViewAsImage(context: Context, view: View) {
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
         Toast.makeText(context, "Saved to gallery", Toast.LENGTH_SHORT).show()
     }
-}
-
-
-
-fun generateRandomCode(): String {
-    val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    return (1..8).map { chars.random() }.joinToString("")
 }
 
 @Composable

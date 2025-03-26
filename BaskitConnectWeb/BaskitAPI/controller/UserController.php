@@ -119,8 +119,8 @@ class UserController
     // --------- SEND VERIFICATION SA EMAIL -------- // 
     public static function sendVerificationEmail($email)
     {
-        $verification_link = "http://".$_SERVER['HTTP_HOST']."/BaskitAPI/verification/verify_email.php?email=" . urlencode($email);
-    
+        $verification_link = "http://".$_SERVER['HTTP_HOST']."/verification/verify_email.php?email=" . urlencode($email);
+
         $htmlContent = file_get_contents(__DIR__ . '/../view/email_verification.html');
         $htmlContent = str_replace('{{verification_link}}', $verification_link, $htmlContent);
     

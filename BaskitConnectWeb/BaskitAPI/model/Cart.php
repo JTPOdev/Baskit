@@ -71,7 +71,8 @@ class Cart
         tagabili_lastname,
         tagabili_mobile,
         tagabili_email,
-        order_code 
+        order_code,
+        is_ready 
         FROM cart WHERE user_id = ?";
 
         if ($stmt = $conn->prepare($sql)) {

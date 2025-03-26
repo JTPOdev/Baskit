@@ -70,6 +70,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    implementation ("androidx.constraintlayout:constraintlayout-compose:1.0.0")
+
     implementation ("com.google.accompanist:accompanist-swiperefresh:0.33.1-alpha")
     implementation ("androidx.compose.foundation:foundation-layout:1.1.0")
     implementation ("androidx.compose.foundation:foundation-layout:1.4.0")

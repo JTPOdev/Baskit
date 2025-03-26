@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -54,11 +55,11 @@ import java.io.InputStream
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun EditStoreScreenPreview() {
-    EditStoreScreen(navController = rememberNavController())
-}
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//private fun EditStoreScreenPreview() {
+//    EditStoreScreen(navController = rememberNavController())
+//}
 
 @Composable
 fun EditStoreScreen(navController: NavController) {
@@ -98,7 +99,7 @@ fun EditStoreScreen(navController: NavController) {
     Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
         //TopBar(navController)
         StoreHeader(storeName, storeImage, navController, apiService)
-        ProductList(products, selectedCategory, isLoading, errorMessage, navController)
+        ProductList(products, selectedCategory, isLoading, navController)
     }
 }
 
@@ -122,10 +123,10 @@ fun StoreHeader(
     ) { uri: Uri? ->
         uri?.let {
             selectedImageUri = it
-            isUploading = true // Show loading indicator
+            isUploading = true
 
             userStoreController.uploadStoreImage(it) { success, message ->
-                isUploading = false // Hide loading indicator
+                isUploading = false
 
                 if (success) {
                     Toast.makeText(context, "Image uploaded successfully!", Toast.LENGTH_SHORT).show()
@@ -141,9 +142,7 @@ fun StoreHeader(
             .fillMaxWidth()
             .height(315.dp)
     ) {
-        // Back Button
         Row{
-
         }
         IconButton(
             onClick = { navController.popBackStack() },
@@ -151,6 +150,7 @@ fun StoreHeader(
                 .padding(top = 60.dp, start = 25.dp)
                 .align(Alignment.TopStart)
                 .size(40.dp)
+                .zIndex(1f)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.back),
@@ -158,8 +158,6 @@ fun StoreHeader(
                 tint = Color.White
             )
         }
-
-        // Store Image Display (With Fallback)
         AsyncImage(
             model = selectedImageUri ?: if (storeImage.isNotBlank()) storeImage.trim() else R.drawable.vendor1,
             contentDescription = "Store Image",
@@ -167,15 +165,12 @@ fun StoreHeader(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Loading Indicator
         if (isUploading) {
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
                 color = Color.White
             )
         }
-
-        // Three-Dot Menu (Top-Right)
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -204,8 +199,6 @@ fun StoreHeader(
                 )
             }
         }
-
-        // Gradient Overlay
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -218,7 +211,6 @@ fun StoreHeader(
                 )
         )
 
-        // Store Name
         Text(
             text = storeName,
             modifier = Modifier
@@ -237,15 +229,39 @@ fun ProductList(
     products: List<ProductsResponse>,
     selectedCategory: MutableState<String>,
     isLoading: MutableState<Boolean>,
-    errorMessage: MutableState<String?>,
     navController: NavController
 ) {
     Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
         val categories = listOf("Fruits", "Vegetables", "Meats", "Spices", "Frozen Foods", "Fish")
+        val categoryMap = mapOf(
+            "Fruits" to "FRUITS",
+            "Vegetables" to "VEGETABLES",
+            "Meats" to "MEAT",
+            "Fish" to "FISH",
+            "Spices" to "SPICES",
+            "Frozen Foods" to "FROZEN"
+        )
 
-        LazyRow(modifier = Modifier.fillMaxWidth()) {
+        val listState = rememberLazyListState()
+
+        LaunchedEffect(selectedCategory.value) {
+            val index = categories.indexOf(selectedCategory.value)
+            if (index != -1) {
+                listState.animateScrollToItem(index, scrollOffset = -350)
+            }
+        }
+
+        LazyRow(
+            state = listState,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             items(categories) { category ->
-                FilterChip(category, selectedCategory.value == category) { selectedCategory.value = category }
+                FilterChip(
+                    category,
+                    selectedCategory.value == category
+                ) {
+                    selectedCategory.value = category
+                }
             }
         }
 
@@ -254,36 +270,23 @@ fun ProductList(
         when {
             isLoading.value -> {
                 Box(
-                    modifier = Modifier.fillMaxSize() .padding(horizontal = 10.dp),
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = Color(0xFFFFA52F))
                 }
             }
-            errorMessage.value != null -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = errorMessage.value ?: "Unknown error", color = Color.Red,  fontSize = 14.sp, fontFamily = poppinsFontFamily, fontWeight = FontWeight.Normal)
-                }
-            }
             else -> {
-                val categoryMap = mapOf(
-                    "Fruits" to "FRUITS",
-                    "Vegetables" to "VEGETABLES",
-                    "Meats" to "MEAT",
-                    "Fish" to "FISH",
-                    "Spices" to "SPICES",
-                    "Frozen Foods" to "FROZEN"
-                )
                 val filteredProducts = products.filter { it.product_category == categoryMap[selectedCategory.value] }
-
-                // Add "Add a product" button to the product list
-                val productListWithAdd = remember(filteredProducts) {
-                    filteredProducts.toMutableList().apply {
-                        add(ProductsResponse(
-                            0,"Add a product", "", "",
-                            "", null,0,
-                            "", "", ""))
-                    }
+                val productListWithAdd = mutableListOf<ProductsResponse>().apply {
+                    add(
+                        ProductsResponse(
+                            0, "Add a product", "", "",
+                            "", null, 0,
+                            "", "", "", null
+                        )
+                    )
+                    addAll(filteredProducts)
                 }
 
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -293,15 +296,15 @@ fun ProductList(
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             rowProducts.forEach { product ->
-                                if (!product.product_image.isNullOrEmpty()) {
-                                    ProductItem(
+                                if (product.id == 0) {
+                                    AddProductButton(
                                         modifier = Modifier.weight(1f),
-                                        product = product,
                                         navController = navController
                                     )
                                 } else {
-                                    AddProductButton(
+                                    ProductItem(
                                         modifier = Modifier.weight(1f),
+                                        product = product,
                                         navController = navController
                                     )
                                 }
@@ -316,8 +319,6 @@ fun ProductList(
         }
     }
 }
-
-
 
 
 @Composable

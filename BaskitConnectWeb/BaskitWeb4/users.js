@@ -200,14 +200,5 @@ function setupUserManagement() {
             userList.innerHTML = "";
         }
     });
-
-    document.getElementById("logoutButton").addEventListener("click", () => {
-        if (confirm("Are you sure you want to log out?")) {
-            sessionStorage.clear();
-            localStorage.clear();
-            window.location.href = "login.html";
-        }
-    });
-
     userList.innerHTML = "";
 }

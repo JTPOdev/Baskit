@@ -6,6 +6,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.BottomSheetValue
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,13 +22,29 @@ import androidx.navigation.NavController
 import com.example.splashscreenbaskit.R
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.material.rememberBottomSheetState
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
+import com.example.splashscreenbaskit.api.ApiService
 import com.example.splashscreenbaskit.controller.CartController
 
+@Preview (showBackground = true)
+@Composable
+fun CartPreview(){
+    val navController = rememberNavController()
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val apiService = RetrofitInstance.create(ApiService::class.java)
 
+    val cartController = remember { CartController(lifecycleOwner, context, apiService) }
+
+    CartScreen(cartController = cartController, navController = navController)
+}
 @Composable
 fun CartScreen(cartController: CartController, navController: NavController) {
     var cartItems by remember { mutableStateOf<List<CartItem>>(emptyList()) }
@@ -43,31 +62,23 @@ fun CartScreen(cartController: CartController, navController: NavController) {
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Title Bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 60.dp, start = 30.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color.Black
-                )
-            }
-            Spacer(modifier = Modifier.width(65.dp))
-            Text(
-                text = "My Basket",
-                fontSize = 24.sp,
-                fontFamily = poppinsFontFamily,
-                fontWeight = FontWeight.Bold
-            )
-        }
+    Column(
+        modifier = Modifier.fillMaxSize()
+            .background(Color.White),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(60.dp))
+
+        Text(
+            text = "My Basket",
+            fontSize = 24.sp,
+            fontFamily = poppinsFontFamily,
+            fontWeight = FontWeight.Bold,
+        )
+
+        Spacer(modifier = Modifier.height(30.dp))
 
         // Loading Indicator
         if (isLoading) {
@@ -86,7 +97,8 @@ fun CartScreen(cartController: CartController, navController: NavController) {
                 text = it,
                 color = Color.Red,
                 fontSize = 16.sp,
-                modifier = Modifier.padding(16.dp)
+                fontFamily = poppinsFontFamily,
+                modifier = Modifier.padding(20.dp)
             )
         }
 
@@ -94,7 +106,7 @@ fun CartScreen(cartController: CartController, navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 20.dp)
                 .weight(1f)
         ) {
             if (cartItems.isEmpty()) {
@@ -195,130 +207,181 @@ fun CartScreen(cartController: CartController, navController: NavController) {
             }
         }
 
-            // Checkout Section
-            if (cartItems.isNotEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(12.dp)
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(Color.Gray.copy(alpha = 0.5f), Color.Transparent)
-                            )
-                        )
-                )
+        // Checkout Section
+        if (cartItems.isNotEmpty()) {
+
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .height(242.dp)
+                .background(color = Color.White, shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
+                .shadow(elevation = 4.dp, shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
+            ){
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(horizontal = 30.dp)
+                        .padding(top = 50.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     val totalPrice = cartItems.sumOf { it.product_price * it.product_quantity }
                     val totalItems = cartItems.sumOf { it.product_quantity }
 
-                    Text(
-                        text = "ITEMS: $totalItems",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = "Total: ₱${"%.2f".format(totalPrice)}",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF6CBF5F)
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Button(
-                        onClick = { navController.navigate("CheckoutScreen") },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1d7151)),
-                        modifier = Modifier.fillMaxWidth(0.9f)
-                    ) {
-                        Text(text = "Checkout", color = Color.White, fontSize = 20.sp)
-                    }
-                }
-            }
-        }
-    }
-
-    @Composable
-    fun CartItemView(
-        item: CartItem,
-        onRemoveItem: () -> Unit,
-        onIncreaseQuantity: () -> Unit,
-        onDecreaseQuantity: () -> Unit
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            elevation = CardDefaults.cardElevation(6.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Column(modifier = Modifier.padding(10.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    // Load image using Coil
-                    Image(
-                        painter = rememberImagePainter(item.product_image ?: "default_image_url"),
-                        contentDescription = "Product Image",
-                        modifier = Modifier.size(80.dp)
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
+                    //HorizontalDivider(thickness = 0.5.dp, color = Color.Black)
+                    Row (
+                        modifier = Modifier.fillMaxWidth() .padding(horizontal = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ){
                         Text(
-                            text = item.product_name,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = item.product_portion ?: "N/A",
+                            text = "Items:",
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
+                            fontFamily = poppinsFontFamily,
+                            fontWeight = FontWeight.SemiBold,
                             color = Color.Gray
                         )
                         Text(
-                            text = "₱${"%.2f".format(item.product_price)}",
+                            text = "$totalItems",
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF6CBF5F)
+                            fontFamily = poppinsFontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.Gray
                         )
                     }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        IconButton(onClick = onRemoveItem) {
+
+                    Spacer(modifier = Modifier.height(15.dp))
+                    Row (
+                        modifier = Modifier.fillMaxWidth() .padding(horizontal = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ){
+                        Text(
+                            text = "Total:",
+                            fontSize = 24.sp,
+                            fontFamily = poppinsFontFamily,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFF83BD70)
+                        )
+                        Text(
+                            text = "₱${"%.2f".format(totalPrice)}",
+                            fontSize = 24.sp,
+                            fontFamily = poppinsFontFamily,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFF83BD70)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(40.dp))
+
+
+                    Button(
+                        onClick = { navController.navigate("CheckoutScreen") },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF83BD70)),
+                        modifier = Modifier.width(205.dp) .height(58.dp)
+                    ) {
+                        Text(text = "Checkout", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = poppinsFontFamily)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CartItemView(
+    item: CartItem,
+    onRemoveItem: () -> Unit,
+    onIncreaseQuantity: () -> Unit,
+    onDecreaseQuantity: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(5.dp),
+        elevation = CardDefaults.cardElevation(6.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Column(modifier = Modifier.padding(10.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Load image using Coil
+                Image(
+                    painter = rememberImagePainter(item.product_image ?: "default_image_url"),
+                    contentDescription = "Product Image",
+                    modifier = Modifier.size(80.dp)
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "seller",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = poppinsFontFamily,
+                        color = Color(0xFF8C8C8C)
+                    )
+                    Text(
+                        text = item.product_name,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = poppinsFontFamily
+                    )
+                    Text(
+                        text = item.product_portion ?: "N/A",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = poppinsFontFamily,
+                        color = Color(0xFF4D4D4D)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "₱${"%.2f".format(item.product_price)}",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = poppinsFontFamily,
+                        color = Color(0xFF4D4D4D)
+                    )
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    IconButton(
+                        modifier = Modifier.align(Alignment.End),
+                        onClick = onRemoveItem
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete Item",
+                            tint = Color.Red
+                        )
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = onDecreaseQuantity) {
                             Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete Item",
-                                tint = Color.Red
+                                painter = painterResource(id = R.drawable.minus),
+                                contentDescription = "Decrease Quantity",
+                                tint = Color.Black,
+                                modifier = Modifier.size(15.dp)
                             )
                         }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = onDecreaseQuantity) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.minus),
-                                    contentDescription = "Decrease Quantity",
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(15.dp)
-                                )
-                            }
-                            Text(text = item.product_quantity.toString(), fontSize = 18.sp)
-                            IconButton(onClick = onIncreaseQuantity) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.add),
-                                    contentDescription = "Increase Quantity",
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(15.dp)
-                                )
-                            }
+                        Text(
+                            text = item.product_quantity.toString(),
+                            fontSize = 15.sp,
+                            fontFamily = poppinsFontFamily,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        IconButton(onClick = onIncreaseQuantity) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.add),
+                                contentDescription = "Increase Quantity",
+                                tint = Color.Black,
+                                modifier = Modifier.size(15.dp)
+                            )
                         }
                     }
                 }
             }
         }
     }
+}

@@ -10,7 +10,7 @@ class AdminController
     {
         $adminId = AuthMiddleware::checkAuth(true);
         
-        $newUsername = $data['new_username'];
+        $newUsername = ucfirst(strtolower(trim($data['new_username'])));
         $newPassword = $data['new_password'];
     
         if (empty($newUsername) || empty($newPassword)) {
@@ -24,7 +24,7 @@ class AdminController
         }
     
         $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-
+    
         if (Admin::updateCredentials($conn, $adminId, $newUsername, $hashedPassword)) {
             header('HTTP/1.1 200 OK');
             return ['message' => 'Credentials updated successfully.'];
@@ -33,6 +33,7 @@ class AdminController
             return ['message' => 'Failed to update credentials. Please try again later.'];
         }
     }
+    
 
     // --------- ADMIN LOGIN -------- //
     public static function login($data, $conn)
@@ -90,6 +91,28 @@ class AdminController
         header('HTTP/1.1 401 Unauthorized');
         echo json_encode(['message' => 'Unauthorized access.']);
         exit;
+    }
+
+    public static function getAdminProfile($conn)
+    {
+        $adminId = AuthMiddleware::checkAuth(true);
+
+        $sql = "SELECT username, has_updated FROM admins WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $adminId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($row = $result->fetch_assoc()) {
+            header('HTTP/1.1 200 OK');
+            return [
+                'username' => $row['username'],
+                'has_updated' => $row['has_updated']
+            ];
+        } else {
+            header('HTTP/1.1 404 Not Found');
+            return ['message' => 'Admin not found'];
+        }
     }
 }
 ?>

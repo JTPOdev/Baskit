@@ -25,16 +25,16 @@ object TokenManager {
     }
 
     fun clearToken() {
-        preferences.edit().remove(TOKEN_KEY).apply()
+        preferences.edit().remove(TOKEN_KEY).commit()
     }
 
     fun isLoggedIn(): Boolean {
         val token = getToken()
-        return !token.isNullOrEmpty()  // Checks if a token exists
+        return !token.isNullOrEmpty()
     }
 
     fun isTokenValid(): Boolean {
         val token = getToken()
-        return !token.isNullOrEmpty() // Basic check for null or empty
+        return !token.isNullOrEmpty()
     }
 }

@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", function () {
         {
             id: "11223",
             customer: "Laurence",
-            date: "2025-03-10",
+            date: "2025-03-27",
             status: "Pending",
             items: [
                 { name: "Apple", price: "₱20", store: "ABC Store" },

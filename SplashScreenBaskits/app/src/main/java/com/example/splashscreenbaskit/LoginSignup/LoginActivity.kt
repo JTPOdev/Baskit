@@ -34,6 +34,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import androidx.navigation.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.splashscreenbaskit.Home.BottomBarScreen
 import com.example.splashscreenbaskit.R
@@ -67,6 +69,9 @@ fun LoginActivity(navController: NavController) {
     val loginController = remember { LoginController(lifecycleOwner, context) }
     var loginMessage by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+
+    val userPrefs = context.getSharedPreferences("UserPrefs", android.content.Context.MODE_PRIVATE)
+
 
     //--------- COLORS ---------//
     val DarkGray = Color(0xFF48444C)
@@ -234,18 +239,31 @@ fun LoginActivity(navController: NavController) {
         Button(
             onClick = {
                 isLoading = true
-                loginController.login(UsernameOrEmail.value, password.value) { success, message, role, errors ->
+                loginController.login(UsernameOrEmail.value, password.value) { success, message, role, errors, token ->
                     loginMessage = message
                     Toast.makeText(context, loginMessage, Toast.LENGTH_SHORT).show()
                     isLoading = false
+
                     if (success) {
+                        userPrefs.edit()
+                            .putString("auth_role", role)
+                            .putString("auth_token", token)
+                            .commit()
+                        val storedRole = userPrefs.getString("auth_role", "Not Found")
+                        println("🔹 Saved Role in SharedPreferences: $storedRole")
                         when (role) {
-                            "Consumer" -> navController.navigate("home")
-                            "Tagabili" -> navController.navigate("TB_HomeActivity")
-                            "Seller" -> navController.navigate("home"){
+                            "Consumer" -> navController.navigate("home") {
                                 popUpTo("LoginActivity") { inclusive = true }
                             }
-                            else -> Toast.makeText(context, "Unknown role: $role", Toast.LENGTH_SHORT).show()
+                            "Tagabili" -> navController.navigate("TB_HomeActivity") {
+                                popUpTo("LoginActivity") { inclusive = true }
+                            }
+                            "Seller" -> navController.navigate("home") {
+                                popUpTo("LoginActivity") { inclusive = true }
+                            }
+                            else -> {
+                                Toast.makeText(context, "Unknown role: $role", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     } else {
                         UsernameOrEmailError.value = errors["username_or_email"] ?: ""

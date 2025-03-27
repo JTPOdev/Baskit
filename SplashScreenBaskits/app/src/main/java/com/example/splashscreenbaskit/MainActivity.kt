@@ -5,10 +5,12 @@ import Order
 import ProductsResponse
 import StoreScreen
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,12 +60,38 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             SplashScreenBaskitTheme {
-                val navController = rememberNavController()
 
-                NavHost(navController = navController, startDestination = "OnBoardingScreen") {
-                    composable("OnBoardingScreen") {
-                        OnboardingScreen(navController)
+                TokenManager.init(this)
+
+                val navController = rememberNavController()
+                val context = LocalContext.current
+
+                val sharedPreferences = context.getSharedPreferences("onboarding_prefs", Context.MODE_PRIVATE)
+                val hasSeenOnboarding = sharedPreferences.getBoolean("hasSeenOnboarding", false)
+                val userPrefs = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+                val role = userPrefs.getString("auth_role", null)
+                val isLoggedIn = TokenManager.getToken() != null
+                val token = TokenManager.getToken()
+
+                println("Token retrieved: $token")
+                println("Role retrieved: $role")
+
+                val startDestination = when {
+                    !hasSeenOnboarding -> "OnboardingScreen"
+                    isLoggedIn -> when (role) {
+                        "Consumer" -> "home"
+                        "Tagabili" -> "TB_HomeActivity"
+                        "Seller" -> "home"
+                        else -> "LoginActivity"
                     }
+                    else -> "LoginActivity"
+                }
+
+                println("Navigating to: $startDestination")
+
+                NavHost(navController, startDestination = startDestination) {
+                    composable("OnboardingScreen") {
+                        OnboardingScreen(navController, context) }
                     composable("SignUpActivity") {
                         SignUpActivity(navController)
                     }
@@ -141,6 +169,10 @@ class MainActivity : ComponentActivity() {
                     }
                     composable("TB_HomeActivity") {
                         TB_HomeContent(navController)
+                    }
+                    composable("TB_OrdersActivity/{userId}") { backStackEntry ->
+                        val userId = backStackEntry.arguments?.getString("userId")?.toIntOrNull() ?: 0
+                        TB_OrdersContent(navController, userId)
                     }
                     composable("TB_AccountDetails") {
                         TB_AccountDetails(navController)

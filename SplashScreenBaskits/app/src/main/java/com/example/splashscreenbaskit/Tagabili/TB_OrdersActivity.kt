@@ -165,7 +165,7 @@ fun TB_OrdersContent(navController: NavController, userId: Int) {
 
             }
             Box(modifier = Modifier
-                .height(600.dp)
+                .fillMaxWidth()
                 .clip(RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp))
                 .background (Color(0xFFE0F4DE))
             ){

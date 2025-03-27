@@ -188,6 +188,7 @@ fun TB_AccountDetails(navController: NavController) {
                         logoutController.logout { success, message ->
                             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                             if (success) {
+                                logout(context, navController)
                                 navController.navigate("LoginActivity") {
                                     popUpTo("AccountActivity") { inclusive = true } }
                             }

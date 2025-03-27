@@ -60,22 +60,26 @@ function setupUserManagement() {
 
     async function fetchUsers(filter) {
         userList.innerHTML = "";
-
+    
         const endpoint = filter === "tagabili" ? "/user/tagabili" : "/store/request/all";
-
+    
         try {
             const response = await fetch(`${BASE_URL}${endpoint}`);
             const data = await response.json();
-
+    
             console.log("API Response:", data);
-
+    
             let users = Array.isArray(data.users) ? data.users : (Array.isArray(data) ? data : []);
-
+    
+            if (filter !== "tagabili") {
+                users = users.filter(user => (user.request_status || "").trim().toLowerCase() === "approved");
+            }
+    
             if (!users.length) {
                 userList.innerHTML = `<p>No users found.</p>`;
                 return;
             }
-
+    
             displayUsers(users, filter);
         } catch (error) {
             console.error("Error fetching users:", error);

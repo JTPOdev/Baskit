@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dashboard</title>
+        <link rel="stylesheet" href="dashboard.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+<body>
+
+    <nav>
+        <div class="nav-header">
+            <div class="logo-container">
+                <img src="img/logo.png" alt="Logo">
+            </div>
+            <h1>Baskit</h1>
+        </div>
+        <ul>
+            <li><a href="dashboard.html"><i class="fa-solid fa-chart-simple"></i> Dashboard</a></li>
+            <li><a href="stores.html"><i class="fas fa-store"></i> Stores</a></li>
+            <li><a href="orders.html"><i class="fas fa-box"></i> Orders</a></li>
+            <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="requests.html"><i class="fa-solid fa-envelope-open-text"></i>Requests</a></li>
+            <li><a href="profile.html"><i class="fa-solid fa-user-tie"></i> Profile</a></li>
+            <li><span id="logoutButton" class="logout-btn"> <i class="fas fa-sign-out-alt"></i> Logout</span></li>
+        </ul>
+    </nav>
+
+    <header>
+        <div class="header-left">
+            <h1>Welcome back, User</h1>
+            <h3>Here are today's status</h3>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <div class="image-slider">
+            <div class="slides">
+                <img src="img/logo.png" class="slide active">
+                <img src="img/logo-transparent.png" class="slide">
+                <img src="img/logo.png" class="slide">
+            </div>
+        
+            <button class="prev" onclick="moveSlide(-1)"> < </button>
+            <button class="next" onclick="moveSlide(1)"> > </button>
+            
+            <div class="slider-menu">
+                <button class="menu-btn">⋮</button>
+                <ul class="menu-options">
+                    <li onclick="addImage()">Add</li>
+                    <li onclick="editImage()">Edit</li>
+                    <li onclick="deleteImage()">Delete</li>
+                </ul>
+            </div>
+        
+            <div class="slider-indicators"></div>
+        </div>
+        
+        
+        
+
+        <div class="summaryContainer">
+            <div class="summary-card">
+                <h3>Today's Sales</h3>
+                <p id="salesToday">₱0.00</p>
+            </div>
+            <div class="summary-card">
+                <h3>Total Orders Today</h3>
+                <p id="ordersToday">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Registered Users</h3>
+                <p id="registeredUsers">0</p>
+            </div>
+        </div>
+        
+    
+        <div class="chartsContainer">
+            <div class="chart-container">
+                <h2>Frequently Bought Items</h2>
+                <select id="productToggle">
+                    <option value="category">by Category</option>
+                    <option value="products">Products</option>
+                </select>
+                <canvas id="productChart"></canvas>
+            </div>
+            
+            
+            <div class="chart-container">
+                <h2>Orders by Store Type</h2>
+                <canvas id="storeChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <h2>Most Popular Stores</h2>
+                <select id="storeTimeframe">
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+                <canvas id="popularStoresChart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h2>Sales Overview</h2>
+                <select id="salesFilter">
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+                <canvas id="salesChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Total Orders Overview</h2>
+                <select id="ordersFilter">
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+                <canvas id="ordersChart"></canvas>
+            </div>
+            
+        </div>
+
+        
+
+    </div>
+
+    <script src="dashboard.js"></script> 
+    
+</body>
+</html>

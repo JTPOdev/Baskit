@@ -18,7 +18,6 @@ class OrderController{
             }
         }
     
-        // ✅ Update cart to mark items as "Order Placed"
         $sql = "UPDATE cart SET order_status = 'Order Placed' WHERE user_id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $userId);

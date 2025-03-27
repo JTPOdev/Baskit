@@ -3,7 +3,7 @@
 class Cart
 {   
     // --------- ADD TO CART/BASKIT -------- //
-    public static function addToCart($userId, $productId, $quantity, $portion, $conn, $productImageUrl)
+    public static function addToCart($userId, $productId, $price, $fee, $quantity, $portion, $conn, $productImageUrl)
     {
         $userQuery = "SELECT * FROM users WHERE id = ?";
         $stmt = $conn->prepare($userQuery);
@@ -28,20 +28,21 @@ class Cart
     
         if ($result->num_rows > 0) {
             $sql = "UPDATE cart 
-                    SET product_quantity = product_quantity + ?, product_image = ? 
+                    SET product_quantity = product_quantity + ?, product_price = ?, fee = ?, product_image = ? 
                     WHERE user_id = ? AND product_id = ? AND product_portion = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("isiis", $quantity, $productImageUrl, $userId, $productId, $portion);
+            $stmt->bind_param("iddsiis", $quantity, $price, $fee, $productImageUrl, $userId, $productId, $portion);
         } else {
             $sql = "INSERT INTO cart 
-                      (user_id, product_id, product_name, product_price, product_quantity, product_portion, product_origin, store_id, store_name, product_image) 
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                      (user_id, product_id, product_name, product_price, fee,  product_quantity, product_portion, product_origin, store_id, store_name, product_image) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("iisdississ", 
+            $stmt->bind_param("iisddississ", 
                 $userId, 
                 $productId, 
                 $product['product_name'], 
-                $product['product_price'], 
+                $price,
+                $fee, 
                 $quantity, 
                 $portion, 
                 $product['product_origin'], 
@@ -50,6 +51,7 @@ class Cart
                 $productImageUrl
             );
         }
+        
         return $stmt->execute() ? ['message' => 'Added to cart'] : ['message' => 'Failed to add to cart'];
     }
     
@@ -58,7 +60,8 @@ class Cart
     {
         $sql = "SELECT product_id, 
         product_name, 
-        product_price, 
+        product_price,
+        fee, 
         product_quantity, 
         product_portion, 
         product_origin, 

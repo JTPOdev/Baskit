@@ -161,17 +161,17 @@ interface ApiService {
     ): Response<List<CartItem>>
 
     //---------- ORDER ---------//
-    @POST("/order/place")
+    @POST("/order/place") // Place Order (check out)
     suspend fun placeOrder(
         @Header("Authorization") token: String
     ): Response<CartItem>
 
-    @GET("/all/orders")
+    @GET("/all/orders") // User info & Total orders (specific)
     suspend fun getOrders(
         @Header("Authorization") accessToken: String
     ): Response<OrderResponse>
 
-    @GET("orders/total/origin")
+    @GET("orders/total/origin") // Order counter
     suspend fun getTotalOrdersByLocation(
         @Header("Authorization") token: String
     ): Response<TotalOrdersResponse>

@@ -49,11 +49,11 @@ fun CartPreview(){
 fun CartScreen(cartController: CartController, navController: NavController) {
     var cartItems by remember { mutableStateOf<List<CartItem>>(emptyList()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
+    //var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         cartController.fetchCartItems { success, message, items ->
-            isLoading = false
+            //isLoading = false
             if (success) {
                 cartItems = items ?: emptyList()
             } else {
@@ -81,15 +81,15 @@ fun CartScreen(cartController: CartController, navController: NavController) {
         Spacer(modifier = Modifier.height(30.dp))
 
         // Loading Indicator
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-            return
-        }
+//        if (isLoading) {
+//            Box(
+//                modifier = Modifier.fillMaxSize(),
+//                contentAlignment = Alignment.Center
+//            ) {
+//                CircularProgressIndicator()
+//            }
+//            return
+//        }
 
         // Display Error Message (if any)
         errorMessage?.let {
@@ -261,7 +261,7 @@ fun CartScreen(cartController: CartController, navController: NavController) {
                             color = Color(0xFF83BD70)
                         )
                         Text(
-                            text = "₱${"%.2f".format(totalPrice)}",
+                            text = "₱${totalPrice}",
                             fontSize = 24.sp,
                             fontFamily = poppinsFontFamily,
                             fontWeight = FontWeight.ExtraBold,

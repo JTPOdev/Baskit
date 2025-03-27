@@ -7,9 +7,9 @@ class CartController
     // --------- ADD TO CART/BASKIT ---------- //
     public static function addToCart($userId, $data, $conn)
     {
-        if (!isset($data['product_id'], $data['product_quantity'], $data['product_portion'])) {
+        if (!isset($data['product_id'], $data['product_price'], $data['fee'], $data['product_quantity'], $data['product_portion'])) {
             header('HTTP/1.1 400 Bad Request');
-            return ['message' => 'Missing required fields: product_id, product_quantity, or product_portion'];
+            return ['message' => 'Missing required fields: product_id, product_price, fee, product_quantity, or product_portion'];
         }
     
         $product = Product::getProductById($data['product_id'], $conn);
@@ -21,6 +21,8 @@ class CartController
         $result = Cart::addToCart(
             $userId,
             $data['product_id'],
+            $data['product_price'],
+            $data['fee'],
             $data['product_quantity'],
             $data['product_portion'],
             $conn,
@@ -40,15 +42,15 @@ class CartController
     public static function viewCart($userId, $conn)
     {
         header('Content-Type: application/json');
-
+    
         if (!$userId) {
             echo json_encode([]);
             exit;
         }
-
+    
         $cart = Cart::getUserCart($userId, $conn);
-
-        echo json_encode($cart);
+    
+        echo json_encode($cart ?? [], JSON_UNESCAPED_SLASHES);
         exit;
     }
 

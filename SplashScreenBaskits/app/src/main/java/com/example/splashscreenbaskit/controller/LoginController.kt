@@ -24,7 +24,7 @@ class LoginController(private val lifecycleOwner: LifecycleOwner, private val co
     fun login(
         email: String,
         password: String,
-        onResult: (Boolean, String, String?, Map<String, String>) -> Unit
+        onResult: (Boolean, String, String?, Map<String, String>, String?) -> Unit
     ) {
         lifecycleOwner.lifecycleScope.launch {
             val apiService = RetrofitInstance.create(ApiService::class.java)
@@ -46,18 +46,18 @@ class LoginController(private val lifecycleOwner: LifecycleOwner, private val co
                     if (token != null) {
                         TokenManager.saveToken(token)
                     }
-                    onResult(true, loginResponse?.message ?: "Login Successful!", role, emptyMap())
+                    onResult(true, loginResponse?.message ?: "Login Successful!", role, emptyMap(), token)
                 } else {
                     val errors = response.errorBody()?.let { parseErrors(it) } ?: emptyMap()
                     val errorMessage = errors["message"] ?: "Login Failed"
-                    onResult(false, errorMessage, null, errors)
+                    onResult(false, errorMessage, null, errors, null)
                 }
             } catch (e: HttpException) {
                 Log.e("LoginError", e.toString())
-                onResult(false, "An error occurred: ${e.message()}", null, emptyMap())
+                onResult(false, "An error occurred: ${e.message()}", null, emptyMap(), null)
             } catch (e: Exception) {
                 Log.e("LoginError", e.toString())
-                onResult(false, "Unexpected error: ${e.localizedMessage}", null, emptyMap())
+                onResult(false, "Unexpected error: ${e.localizedMessage}", null, emptyMap(), null)
             }
         }
     }

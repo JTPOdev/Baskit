@@ -30,8 +30,22 @@ import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
 import com.google.accompanist.pager.*
 import kotlinx.coroutines.launch
 
+import android.content.Context
+import androidx.compose.runtime.LaunchedEffect
+
 @Composable
-fun OnboardingScreen(navController: NavController) {
+fun OnboardingScreen(navController: NavController, context: Context) {
+    val sharedPreferences = context.getSharedPreferences("onboarding_prefs", Context.MODE_PRIVATE)
+    val hasSeenOnboarding = sharedPreferences.getBoolean("hasSeenOnboarding", false)
+
+    LaunchedEffect(Unit) {
+        if (hasSeenOnboarding) {
+            navController.navigate("LoginActivity") {
+                popUpTo("OnboardingScreen") { inclusive = true }
+            }
+        }
+    }
+
     val pagerState = rememberPagerState(initialPage = 0)
     val coroutineScope = rememberCoroutineScope()
 
@@ -82,7 +96,6 @@ fun OnboardingScreen(navController: NavController) {
             }
         }
 
-        // Skip Button (Bottom Left)
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -104,7 +117,6 @@ fun OnboardingScreen(navController: NavController) {
             }
         }
 
-        // Page Indicator
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Bottom,
@@ -117,7 +129,6 @@ fun OnboardingScreen(navController: NavController) {
             )
         }
 
-        // Get Started Button (only on last page)
         if (pagerState.currentPage == 2) {
             Box(
                 modifier = Modifier
@@ -126,7 +137,12 @@ fun OnboardingScreen(navController: NavController) {
                 contentAlignment = Alignment.BottomEnd
             ) {
                 TextButton(
-                    onClick = { navController.navigate("LoginActivity") }
+                    onClick = {
+                        sharedPreferences.edit().putBoolean("hasSeenOnboarding", true).apply()
+                        navController.navigate("LoginActivity") {
+                            popUpTo("OnboardingScreen") { inclusive = true }
+                        }
+                    }
                 ) {
                     Text(
                         text = "Get Started",
@@ -140,6 +156,7 @@ fun OnboardingScreen(navController: NavController) {
         }
     }
 }
+
 
 @Composable
 fun OnboardingImage(page: Int, maxWidth: Dp, maxHeight: Dp) {
@@ -218,10 +235,4 @@ fun PageIndicator(currentPage: Int, totalScreens: Int, maxHeight: Dp) {
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun OnBoardingScreenPreview() {
-    OnboardingScreen(navController = rememberNavController())
 }

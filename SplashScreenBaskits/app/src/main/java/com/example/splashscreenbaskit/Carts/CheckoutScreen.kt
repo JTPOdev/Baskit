@@ -81,10 +81,11 @@ fun CheckoutScreen(cartController: CartController, navController: NavController)
 
     val firstItem = cartItems.firstOrNull()
     val orderStatus = firstItem?.status
-    val tagabiliFirstname =
-        firstItem?.tagabili_firstname + " " + firstItem?.tagabili_lastname ?: "Unknown"
+    val tagabiliFirstname = firstItem?.tagabili_firstname + " " + firstItem?.tagabili_lastname ?: "Unknown"
     val tagabiliMobile = firstItem?.tagabili_mobile ?: "N/A"
     val tagabiliEmail = firstItem?.tagabili_email ?: "N/A"
+
+    val totalFee = cartItems.sumOf { it.fee }
 
     // Fetch cart items when screen loads
     LaunchedEffect(cartItems) {
@@ -257,7 +258,7 @@ fun CheckoutScreen(cartController: CartController, navController: NavController)
                     color = Color.Gray
                 )
                 Text(
-                    text = "₱${"%.2f".format(totalPrice)}",
+                    text = "₱${totalPrice}",
                     fontSize = 16.sp,
                     fontFamily = poppinsFontFamily,
                     fontWeight = FontWeight.SemiBold,
@@ -279,7 +280,7 @@ fun CheckoutScreen(cartController: CartController, navController: NavController)
                     color = Color.Gray
                 )
                 Text(
-                    text = "₱0.00",
+                    text = "₱${totalFee + 40}",
                     fontSize = 16.sp,
                     fontFamily = poppinsFontFamily,
                     fontWeight = FontWeight.SemiBold,
@@ -305,7 +306,7 @@ fun CheckoutScreen(cartController: CartController, navController: NavController)
                     color = Color(0xFF83BD70)
                 )
                 Text(
-                    text = "₱${"%.2f".format(totalPrice)}",
+                    text = "₱${totalPrice + totalFee + 40}",
                     fontSize = 24.sp,
                     fontFamily = poppinsFontFamily,
                     fontWeight = FontWeight.ExtraBold,
@@ -614,7 +615,7 @@ fun CheckoutItemView(item: CartItem) {
                     fontFamily = poppinsFontFamily
                 )
                 Text(
-                    text = "${item.product_quantity} pcs",
+                    text = "${item.product_quantity} of ${item.product_portion ?: "N/A"}",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     fontFamily = poppinsFontFamily

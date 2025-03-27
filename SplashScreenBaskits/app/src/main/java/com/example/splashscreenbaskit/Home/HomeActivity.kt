@@ -18,6 +18,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -40,6 +41,7 @@ import androidx.compose.material.icons.filled.ShoppingBasket
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -305,10 +307,6 @@ fun HomeScreen() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-//    val context = LocalContext.current
-//    val tokenManager = remember { com.example.splashscreenbaskit.api.TokenManager(context) }
-//    var isLoggedIn by remember { mutableStateOf(TokenManager.getToken() != null) }
-
     Log.d("HomeScreen", "Current Route: $currentRoute")
 
     Scaffold(
@@ -317,7 +315,8 @@ fun HomeScreen() {
             if (currentRoute !in listOf("ProductScreen/{productName}/{productResponse}",
                     "CartScreen", "CheckoutScreen", "ShopScreen/{vendorName}/{vendorId}",
                     "StoreRequestScreen", "RulesScreen", "EditStoreScreen", "RequestSentScreen",
-                    "AddProductTest", "ProductScreen", "StoreScreen", "LoginActivity", "TB_HomeActivity", "TB_OrdersActivity", "TB_AccountDetails" )) {
+                    "AddProductTest", "ProductScreen", "StoreScreen", "LoginActivity",
+                    "SignUpActivity", "TB_HomeActivity", "TB_OrdersActivity", "TB_AccountDetails" )) {
                 BottomBar(navController = navController)
             }
         }
@@ -351,14 +350,16 @@ fun HomeScreen() {
 
                     val cartController = remember { CartController(lifecycleOwner, context, apiService) }
                     var cartItems by remember { mutableStateOf<List<CartItem>>(emptyList()) }
-                    var isLoading by remember {mutableStateOf(true)}
+                    //var isLoading by remember {mutableStateOf(true)}
 
                     LaunchedEffect(Unit) {
                         cartController.fetchCartItems { success, _, items ->
                             if (success) {
-                                isLoading = false
+                                //isLoading = false
                                 cartItems = items ?: emptyList()
-                                val hasOrderPlaced = cartItems.any { it.order_status == "Order Placed" }
+
+                                val hasOrderPlaced =
+                                    cartItems.any { it.order_status == "Order Placed" }
                                 if (hasOrderPlaced) {
                                     navController.navigate("CheckoutScreen") {
                                         popUpTo(BottomBarScreen.Cart.route) { inclusive = true }
@@ -367,16 +368,16 @@ fun HomeScreen() {
                             }
                         }
                     }
-                    if (isLoading) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    } else {
+//                    if (isLoading) {
+//                        Box(
+//                            modifier = Modifier.fillMaxSize(),
+//                            contentAlignment = Alignment.Center
+//                        ) {
+//                            CircularProgressIndicator()
+//                        }
+//                    } else {
                         CartScreen(cartController = cartController, navController = navController)
-                    }
+//                    }
                 }
                 composable(BottomBarScreen.Account.route) {
                     AccountActivity(navController)
@@ -418,6 +419,9 @@ fun HomeScreen() {
                 composable("LoginActivity") {
                     LoginActivity(navController)
                 }
+                composable("SignUpActivity") {
+                    SignUpActivity(navController)
+                }
                 composable("NotificationsActivity") {
                     NotificationsActivity(navController)
                 }
@@ -451,6 +455,10 @@ fun HomeScreen() {
                 composable("TB_HomeActivity") {
                     TB_HomeContent(navController)
                 }
+                composable("TB_OrdersActivity/{userId}") { backStackEntry ->
+                    val userId = backStackEntry.arguments?.getString("userId")?.toIntOrNull() ?: 0
+                    TB_OrdersContent(navController, userId)
+                }
                 composable("TB_AccountDetails") {
                     TB_AccountDetails(navController)
                 }
@@ -478,9 +486,6 @@ fun HomeScreen() {
                     val cartController = remember { CartController(lifecycleOwner, context, apiService) }
                     CheckoutScreen(cartController = cartController, navController = navController)
                 }
-//                composable("StoreScreen") {
-//                    StoreScreen(navController)
-//                }
                 composable("StoreScreen/{storeId}", arguments = listOf(navArgument("storeId") { type = NavType.IntType })) { backStackEntry ->
                     val storeId = backStackEntry.arguments?.getInt("storeId") ?: 0
                     StoreScreen(navController, storeId)
@@ -516,7 +521,11 @@ fun HomeContent(
     )
     val locationMapping = mapOf("Dagupan" to "DAGUPAN", "Calasiao" to "CALASIAO")
 
-    val listState = rememberLazyListState()
+//    val listState = rememberLazyListState()
+    val listState = rememberSaveable(saver = LazyListState.Saver) {
+        LazyListState()
+    }
+
 
     LaunchedEffect(selectedLocation.value, selectedCategory.value) {
         val currentLocation = selectedLocation.value ?: return@LaunchedEffect
@@ -614,7 +623,7 @@ fun HomeContent(
                     .background(Color.White)
             ) {
                 LocationSelector(selectedLocation)
-
+                Spacer(modifier = Modifier.height(1.dp))
                 Box(
                     modifier = Modifier.fillMaxWidth()
                 ) {

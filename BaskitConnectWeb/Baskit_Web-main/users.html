@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Users</title>
+        <link rel="stylesheet" href="users.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+<body>
+
+    <nav>
+        <div class="nav-header">
+            <div class="logo-container">
+                <img src="img/logo.png" alt="Logo">
+            </div>
+            <h1>Baskit</h1>
+        </div>
+        <ul>
+            <li><a href="dashboard.html"><i class="fa-solid fa-chart-simple"></i> Dashboard</a></li>
+            <li><a href="stores.html"><i class="fas fa-store"></i> Stores</a></li>
+            <li><a href="orders.html"><i class="fas fa-box"></i> Orders</a></li>
+            <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="requests.html"><i class="fa-solid fa-envelope-open-text"></i>Requests</a></li>
+            <li><a href="profile.html"><i class="fa-solid fa-user-tie"></i> Profile</a></li>
+            <li><span id="logoutButton" class="logout-btn"> <i class="fas fa-sign-out-alt"></i> Logout</span></li>
+        </ul>
+    </nav>
+
+    <header>
+        <div class="header-left">
+            <h1><span>Users</span></h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="container-controls">
+            <select id="filterSelect">
+                <option value="" disabled selected>Select User</option>
+                <option value="customer">Customer</option>
+                <option value="tagabili">Tagabili</option>
+                <option value="owner">Store Owner</option>
+            </select>
+            <button id="openFormButton">Register</button>
+        </div>
+        
+
+        <div class="container-info">
+            <div class="header-row">
+                <div>Name</div>
+                <div>Username</div>
+                <div id="storeHeader" style="display: none;">Store Name</div>
+                <div>Mobile Number</div>
+                <div>Email</div>
+            </div>
+            <div class="user-list" id="userList"></div>
+            <div id="userDetailsContainer" style="display: none; border: 1px solid #ccc; padding: 10px; margin-top: 10px;">
+                <h3>User Details</h3>
+                <p>Select a user to view details.</p>
+            </div>
+            
+        </div>
+
+        <div id="userFormContainer" class="form-container">
+            <form id="userForm">
+                <h2>Add New User</h2>
+                
+                <label for="name">Name:</label>
+                <input type="text" id="name" required pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed" maxlength="50">
+                
+                <label for="birthday">Birthday:</label>
+                <input type="date" id="birthday" required>
+            
+                <label for="username">Username:</label>
+                <input type="text" id="username" maxlength="20" required>
+            
+                <label for="mobile">Mobile:</label>
+                <input type="text" id="mobile" pattern="[0-9]{11}" placeholder="Enter 11-digit number" maxlength="11" required>
+            
+                <label for="email">Email:</label>
+                <input type="email" id="email" required pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" title="Enter a valid email address (e.g., example@mail.com)">
+            
+                <label for="password">Password:</label>
+                <input type="password" id="password" required>
+            
+                <label for="confirmPassword">Confirm Password:</label>
+                <input type="password" id="confirmPassword" required>
+                <p id="passwordError" style="color: red; display: none;">Passwords do not match.</p>
+            
+                <div class="button-container">
+                    <button type="submit">Register</button>
+                    <button type="button" id="closeFormButton">Close</button>
+                </div>
+            </form>
+            
+        </div>
+        
+    </div> 
+
+    <script src="users.js"></script> 
+    
+</body>
+</html>

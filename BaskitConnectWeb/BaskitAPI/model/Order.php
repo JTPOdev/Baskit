@@ -16,11 +16,13 @@ class Order {
     }
 
     public static function createOrder($userId, $item, $conn) {
+
         $sql = "INSERT INTO orders (
         user_id, 
         product_id, 
         product_name, 
-        product_price, 
+        product_price,
+        fee, 
         product_quantity, 
         product_portion, 
         product_origin, 
@@ -28,16 +30,17 @@ class Order {
         store_name, 
         product_image, 
         status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')";
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')";
         $stmt = $conn->prepare($sql);
         if (!$stmt) {
             die(json_encode(['message' => 'SQL Error: ' . $conn->error]));
         }
-        $stmt->bind_param("iisdississ", 
+        $stmt->bind_param("iisddississ", 
             $userId, 
             $item['product_id'], 
             $item['product_name'], 
             $item['product_price'], 
+            $item['fee'], 
             $item['product_quantity'], 
             $item['product_portion'], 
             $item['product_origin'], 
@@ -282,8 +285,8 @@ class Order {
 
     public static function getTotalOrdersByLocation($conn) {
         $sql = "SELECT 
-                    COUNT(DISTINCT CASE WHEN o.product_origin = 'DAGUPAN' THEN o.user_id END) AS total_dagupan_orders,
-                    COUNT(DISTINCT CASE WHEN o.product_origin = 'CALASIAO' THEN o.user_id END) AS total_calasiao_orders
+                    COUNT(DISTINCT CASE WHEN o.product_origin = 'DAGUPAN' AND o.status != 'completed' THEN o.user_id END) AS total_dagupan_orders,
+                    COUNT(DISTINCT CASE WHEN o.product_origin = 'CALASIAO' AND o.status != 'completed' THEN o.user_id END) AS total_calasiao_orders
                 FROM orders o";
         
         $stmt = $conn->prepare($sql);

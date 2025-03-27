@@ -41,36 +41,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.splashscreenbaskit.api.ApiService
 import com.google.gson.Gson
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewProductScreen() {
-    val dummyProduct = ProductsResponse(
-        id = 1,
-        product_name = "Apple",
-        product_price = "50.00",
-        product_category = "Fruits",
-        product_origin = "Dagupan",
-        store_id = 1,
-        store_name = "Fresh Market",
-        store_phone_number = "09123456789",
-        store_address = "123 Street, City",
-        product_image = "",
-        store_image = ""
-    )
-
-    val fakeCartController = CartController(
-        lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current).value,
-        context = LocalContext.current,
-        apiService = RetrofitInstance.create(ApiService::class.java)
-    )
-
-    ProductScreen(
-        navController = rememberNavController(),
-        productName = "Apple",
-        productsResponse = dummyProduct,
-        cartController = fakeCartController
-    )
-}
 @Composable
 fun ProductScreen(
     navController: NavController = rememberNavController(),
@@ -95,14 +65,26 @@ fun ProductScreen(
     val basePrice = product.product_price.toDouble()
     val priceIncrease = 30.0
 
-    val priceForWeight = when (selectedWeight) {
-        "1 pc" -> basePrice
-        "1/4 kg" -> basePrice + priceIncrease
-        "1/2 kg" -> basePrice + priceIncrease
-        "1 kg" -> basePrice + priceIncrease * 2
-        else -> basePrice
+    val priceForWeight by remember(selectedWeight) {
+        mutableStateOf(
+            when (selectedWeight) {
+                "1pc" -> basePrice
+                "1/4kg" -> basePrice + (priceIncrease * 0.25)
+                "1/2kg" -> basePrice + (priceIncrease * 0.5)
+                "1kg" -> basePrice + (priceIncrease * 1.0)
+                else -> basePrice
+            }
+        )
     }
     val totalPrice = priceForWeight * quantity
+
+    val feePerPiece = when (selectedWeight) {
+        "1pc" -> 2.0 * quantity  // ₱2 per piece
+        "1/4kg" -> priceForWeight * 0.04 * quantity // 4% fee
+        "1/2kg" -> priceForWeight * 0.05 * quantity // 3% fee
+        "1kg" -> priceForWeight * 0.06 * quantity  // 6% fee
+        else -> 0.0
+    }
 
     val onBackPressed = {
         navController.popBackStack()
@@ -321,7 +303,8 @@ fun ProductScreen(
                             cartController.addToCart(
                                 productId = product.id,
                                 productName = product.product_name,
-                                productPrice = product.product_price.toDoubleOrNull() ?: 0.0,
+                                productPrice = totalPrice,
+                                fee = feePerPiece,
                                 productQuantity = quantity,
                                 productPortion = selectedWeight,
                                 productOrigin = product.product_origin,

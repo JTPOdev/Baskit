@@ -669,10 +669,9 @@ fun TermsAndConditions(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     val scrollState = rememberScrollState()
     var hasReachedBottom by remember { mutableStateOf(false) }
 
-    // Track if the user reaches the bottom
     LaunchedEffect(scrollState.value, scrollState.maxValue) {
-        if (scrollState.maxValue > 0) { // Ensure maxValue is valid
-            hasReachedBottom = scrollState.value >= (scrollState.maxValue - 10) // Small margin
+        if (scrollState.maxValue > 0) {
+            hasReachedBottom = scrollState.value >= (scrollState.maxValue - 10)
         }
     }
 
@@ -801,7 +800,6 @@ fun TermsAndConditions(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit) {
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // Buttons are ALWAYS visible but DISABLED until scrolled to the end
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly

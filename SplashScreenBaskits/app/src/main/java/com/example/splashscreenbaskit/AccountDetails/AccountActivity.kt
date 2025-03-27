@@ -1,6 +1,7 @@
 package com.example.splashscreenbaskit.AccountDetails
 
 import User
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.*
@@ -28,6 +29,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.splashscreenbaskit.R
+import com.example.splashscreenbaskit.api.TokenManager
 import com.example.splashscreenbaskit.controller.LogoutController
 import com.example.splashscreenbaskit.controller.UserController
 import com.example.splashscreenbaskit.ui.theme.poppinsFontFamily
@@ -244,6 +246,7 @@ fun AccountActivity(navController: NavController) {
                         logoutController.logout { success, message ->
                             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                             if (success) {
+                                logout(context, navController)
                                 navController.navigate("LoginActivity") {
                                     popUpTo("AccountActivity") { inclusive = true } }
                             }
@@ -350,5 +353,15 @@ fun AccountInfoRows(label: String, icon: ImageVector, value: String) {
                 Text(text = value, fontFamily = poppinsFontFamily)
             }
         }
+    }
+}
+
+fun logout(context: Context, navController: NavController) {
+    val userPrefs = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+    userPrefs.edit().remove("auth_token").commit()
+    TokenManager.clearToken()
+    println("🔹 Token after clearing: ${TokenManager.getToken()}")
+    navController.navigate("LoginActivity") {
+        popUpTo(navController.graph.startDestinationId) { inclusive = true }
     }
 }

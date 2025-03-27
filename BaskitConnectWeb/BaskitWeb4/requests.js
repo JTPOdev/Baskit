@@ -1,45 +1,34 @@
 import { BASE_URL } from "./config.js"; 
 
-
 document.addEventListener("DOMContentLoaded", () => {
     const navLinks = document.querySelectorAll("ul li a");
     const currentPage = window.location.pathname.split("/").pop(); 
 
     navLinks.forEach(link => {
-        if (link.getAttribute("href") === currentPage) {
-            link.classList.add("active");
-        } else {
-            link.classList.remove("active");
-        }
+        link.classList.toggle("active", link.getAttribute("href") === currentPage);
     });
-});
 
-document.addEventListener("DOMContentLoaded", function () {
     const heading = document.querySelector(".header-left h1");
+    if (heading) heading.classList.add("active");
 
-    heading.classList.add("active"); 
-
-    heading.addEventListener("click", function () {
+    heading?.addEventListener("click", function () {
         this.classList.add("active"); 
     });
-});
 
-
-document.addEventListener("DOMContentLoaded", function () {
     const nav = document.querySelector("nav");
-
-    setTimeout(() => {
-        nav.classList.add("show");
-    }, 100);
+    setTimeout(() => nav?.classList.add("show"), 100);
+    initUserManagement();
 });
 
-document.addEventListener("DOMContentLoaded", function () {
+function initUserManagement() {
     const userInfoContainer = document.querySelector(".business-profile");
     const filterSelect = document.getElementById("filterSelect");
 
     let users = [];
+    let declinedUsers = JSON.parse(localStorage.getItem("declinedUsers")) || [];
+    let approvedUsers = JSON.parse(localStorage.getItem("approvedUsers")) || [];
 
-    async function fetchUsers() {
+    async function fetchUsers(filter = "") {
         try {
             const response = await fetch(`${BASE_URL}/store/request/all`, {
                 method: "GET",
@@ -48,28 +37,41 @@ document.addEventListener("DOMContentLoaded", function () {
                     "Accept": "application/json"
                 }
             });
-    
+
             if (!response.ok) throw new Error("Failed to fetch users");
-    
-            users = await response.json();
-    
-            users = users.filter(user => {
-                let status = user.request_status ? user.request_status.trim().toLowerCase() : "";
-                return status === "pending";
-            });
-    
+
+            let fetchedUsers = await response.json();
+            console.log("Fetched users:", fetchedUsers);
+
+            fetchedUsers = fetchedUsers.filter(user => 
+                (user.request_status || "").trim().toLowerCase() === "pending" &&
+                !declinedUsers.includes(user.id) &&
+                !approvedUsers.includes(user.id) // Exclude already declined/approved users
+            );
+
+            if (!filter) {
+                fetchedUsers = fetchedUsers.filter(user => {
+                    const status = (user.store_status || "").trim().toLowerCase();
+                    return status !== "partner" && status !== "standard";
+                });
+            } else {
+                fetchedUsers = fetchedUsers.filter(user => (user.store_status || "").trim().toLowerCase() === filter);
+            }
+
+            users = fetchedUsers;
             renderUsers(users);
         } catch (error) {
             console.error("Error fetching users:", error);
-            userInfoContainer.innerHTML = "<p>Error loading users.</p>";
+            userInfoContainer.innerHTML = `
+                <div class="empty-container">
+                    <img src="img/cuate.png" alt="No Data Available">
+                    <p class="empty-text">Error fetching data. Please try again.</p>
+                </div>
+            `;
         }
     }
 
     function renderUsers(usersToDisplay) {
-        userInfoContainer.innerHTML = "";
-
-        if (usersToDisplay.length === 0) return;
-
         userInfoContainer.innerHTML = `
             <div class="header-row">
                 <div>Name</div>     
@@ -78,6 +80,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div>Email</div>
             </div>
         `;
+
+        if (usersToDisplay.length === 0) {
+            userInfoContainer.innerHTML += `
+                <div class="empty-container">
+                    <img src="img/cuate.png" alt="No Data Available">
+                    <p class="empty-text">No store requests available.</p>
+                </div>
+            `;
+            return;
+        }
 
         usersToDisplay.forEach(user => {
             let userRow = document.createElement("div");
@@ -152,13 +164,39 @@ document.addEventListener("DOMContentLoaded", function () {
         userRow.insertAdjacentElement("afterend", detailsRow);
     }
 
+    function showToast(message) {
+        // Remove existing toast if present
+        let existingToast = document.querySelector(".toast");
+        if (existingToast) {
+            existingToast.remove();
+        }
+    
+        // Create toast
+        const toast = document.createElement("div");
+        toast.classList.add("toast");
+        toast.textContent = message;
+    
+        // Append toast to body
+        document.body.appendChild(toast);
+    
+        // Remove toast after 3 seconds
+        setTimeout(() => {
+            toast.classList.add("fade-out");
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    }
+
     function handleAction(userId, action) {
         const endpoint = action === "approve" ? "store/approve" : "store/decline";
         const button = document.querySelector(`[data-user-id="${userId}"][data-action="${action}"]`);
-    
-        button.innerHTML = "⏳ Processing...";
+
+        const loader = document.createElement("span");
+        loader.classList.add("loading-spinner");
+
+        button.innerHTML = "";
+        button.appendChild(loader);
         button.disabled = true;
-    
+
         fetch(`${BASE_URL}/${endpoint}/${userId}`, {
             method: "POST",
             headers: {
@@ -167,34 +205,28 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         })
         .then(response => response.json())
-        .then(data => {
-            alert(`User ID ${userId} has been ${action}d.`);
-    
+        .then(() => {
+            showToast(`User ${action}d`);
+
+            if (action === "approve") {
+                approvedUsers.push(userId);
+                localStorage.setItem("approvedUsers", JSON.stringify(approvedUsers));
+            } else {
+                declinedUsers.push(userId);
+                localStorage.setItem("declinedUsers", JSON.stringify(declinedUsers));
+            }
+
             users = users.filter(user => user.id !== userId);
             renderUsers(users);
         })
         .catch(error => {
             console.error("Error updating store status:", error);
             alert("An error occurred. Please try again.");
-        })
-        .finally(() => {
-            if (document.contains(button)) {
-                button.innerHTML = action === "approve" ? "✔ Approve" : "✖ Decline";
-                button.disabled = false;
-            }
         });
     }
 
     filterSelect.addEventListener("change", function () {
-        let selectedType = this.value.toLowerCase();
-
-        if (!selectedType || selectedType === "all") {
-            renderUsers(users);
-            return;
-        }
-
-        let filteredUsers = users.filter(user => user.store_status.toLowerCase() === selectedType);
-        renderUsers(filteredUsers);
+        fetchUsers(this.value.trim().toLowerCase());
     });
 
     document.addEventListener("click", function (event) {
@@ -206,7 +238,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     fetchUsers();
-});
+}
 
 document.addEventListener("DOMContentLoaded", function () {
     document.body.addEventListener("click", function (event) {
@@ -219,16 +251,7 @@ document.addEventListener("DOMContentLoaded", function () {
 function openFullScreenImage(imageSrc) {
     const fullScreenDiv = document.createElement("div");
     fullScreenDiv.classList.add("full-screen-view");
-
-    const fullScreenImg = document.createElement("img");
-    fullScreenImg.src = imageSrc;
-    fullScreenImg.alt = "Enlarged Image";
-
-    fullScreenDiv.appendChild(fullScreenImg);
+    fullScreenDiv.innerHTML = `<img src="${imageSrc}" alt="Enlarged Image">`;
     document.body.appendChild(fullScreenDiv);
-
-    fullScreenDiv.addEventListener("click", function () {
-        fullScreenDiv.remove();
-    });
+    fullScreenDiv.addEventListener("click", () => fullScreenDiv.remove());
 }
-
